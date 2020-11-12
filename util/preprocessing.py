@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-# entropy_functions.py
+# Initial pre-processing
 # (c) Zexun Chen, 2020-11-12
 # sxtpy2010@gmail.com
 

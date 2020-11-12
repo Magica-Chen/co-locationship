@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# entropy_functions.py
+# Cross entropy functions
 # (c) Zexun Chen 2020-11-01
 # sxtpy2010@gmail.com
 
