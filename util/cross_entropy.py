@@ -10,7 +10,8 @@ import numpy as np
 
 # Since the LZ-cross_entropy estimation only converge when the length is large,
 # so we add one more arg for this function
-def LZ_cross_entropy(W1, W2, PTs, lambdas=False, e=100):
+def LZ_cross_entropy(W1, W2, PTs, lambdas=False, both=False,
+                     e=2):
     """Find the cross entropy H_cross(W2|W1), how many bits we would need to
     encode the data in W2 using the information in W1. W1 and W2 are lists of
     strings, PTs is a list of integers with the same length as W2 denoting the
@@ -43,7 +44,7 @@ def LZ_cross_entropy(W1, W2, PTs, lambdas=False, e=100):
         if lambdas:
             return L
 
-        if sum(L) == lenW2:
-            return np.nan
-        else:
-            return (1.0 * lenW2 / sum(L)) * np.log2(lenW1)
+        if both:
+            return L, (1.0 * lenW2 / sum(L)) * np.log2(lenW1)
+
+        return (1.0 * lenW2 / sum(L)) * np.log2(lenW1)
