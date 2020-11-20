@@ -10,34 +10,57 @@ from util.cross_entropy import LZ_cross_entropy
 from util.entropy import LZ_entropy
 
 
-def cumulative_LZ_CE(W1_list, W2, PTs_list,
+def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False,
                      e=2):
     """ Cumulative LZ cross entropy
     :param W1_list: nested list filled in many alters' sequences
     :param W2: ego's sequence
     :param PTs_list: nested list filled in many alters' PTs
+    :param individual: list all cumulative cross entropy add alters one by one
     :param e: minimum length of sequence
     :return: cumulative LZ cross entropy
-    """
 
-    alters_len = [len(x) for x in W1_list]
+    Bagrow, James P., Xipei Liu, and Lewis Mitchell. "Information flow reveals
+    prediction limits in online social activity." Nature human behaviour 3.2
+    (2019): 122-128.
+    """
     ego_len = len(W2)
 
-    wb = []
-    alters_L = []
-    for W1, PTs in zip(W1_list, PTs_list):
-        alters_L.append(LZ_cross_entropy(W1, W2, PTs, lambdas=True, e=e))
-        # count how many element > 1, which is wb
-        wb.append(sum(1 for x in alters_L[-1] if x > 1))
+    if ego_len <= e:
+        raise ValueError('The length of ego sequence is too short')
 
-    alters_Lmax = np.amax(alters_L, axis=0)
-    sum_L = sum(alters_Lmax)
-    ave_length = np.average(wb, weights=alters_len)
+    if (any(isinstance(i, list) for i in W1_list)) & (any(isinstance(i, list) for i in PTs_list)):
+        wb = []
+        alters_L = []
+        alters_len = []
 
-    return (1.0 * ego_len / sum_L) * np.log2(ave_length)
+        if individual:
+            # allocate a empty list to save all CCE
+            CCE = []
+            for W1, PTs in zip(W1_list, PTs_list):
+                alters_len.append(len(W1))
+                alters_L.append(LZ_cross_entropy(W1, W2, PTs, lambdas=True, e=e))
+                # count how many element > 1, which is wb
+                wb.append(sum(1 for x in alters_L[-1] if x > 1))
 
+                alters_Lmax = np.amax(alters_L, axis=0)
+                sum_L = sum(alters_Lmax)
+                ave_length = np.average(alters_len, weights=wb)
+                # append all CCE one by one
+                CCE.append((1.0 * ego_len / sum_L) * np.log2(ave_length))
+            return CCE
+        else:
+            for W1, PTs in zip(W1_list, PTs_list):
+                alters_len.append(len(W1))
+                alters_L.append(LZ_cross_entropy(W1, W2, PTs, lambdas=True, e=e))
+                # count how many element > 1, which is wb
+                wb.append(sum(1 for x in alters_L[-1] if x > 1))
 
-def recursive_cumulative_LZ_CE():
-    """ Recursive computation of Cumulative LZ cross entropy"""
-
-    return
+            alters_Lmax = np.amax(alters_L, axis=0)
+            sum_L = sum(alters_Lmax)
+            ave_length = np.average(alters_len, weights=wb)
+            # compute cumulative cross entropy
+            CCE = (1.0 * ego_len / sum_L) * np.log2(ave_length)
+            return CCE
+    else:
+        return LZ_cross_entropy(W1_list, W2, PTs_list, e=2)

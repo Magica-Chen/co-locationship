@@ -24,11 +24,10 @@ class Co_Locationship(object):
     Create a class to investigate co-locationship
     """
 
-    def __init__(self, path, mins_records=150, freq='H', **kwargs):
+    def __init__(self, path, mins_records=150, **kwargs):
         """
         :param path: path of source file
         :param mins_records: the required min number of records for each user
-        :param freq: when comparing timestamp, which scale we use
         :param kwargs: resolution and other kargs
         """
         # rdata means raw dataset and pdata means processed dataset
@@ -38,10 +37,9 @@ class Co_Locationship(object):
         self.pdata = util.pre_processing(df_raw=self.rdata,
                                          min_records=mins_records,
                                          **kwargs)
-        self.pdata['datetimeR'] = pd.to_datetime(self.pdata['datetime']).dt.floor(freq)
         # all the following computations are based on processed data
         self.userlist = sorted(list(set(self.pdata['userid'].tolist())))
-        self.freq = freq
+        self.freq = None
         if 'placeidT' in kwargs:
             self.placeidT = kwargs['placeidT']
         else:
@@ -71,15 +69,16 @@ class Co_Locationship(object):
         :param ego: string, ego's userid
         :return: dataframe, filled with co-locators information
         """
+
         df_ego = self.pdata[self.pdata['userid'] == ego][['userid',
                                                           'placeid',
                                                           'datetimeR']]
 
         df_alters = self.pdata[self.pdata['userid'] != ego][['userid',
                                                              'placeid',
-                                                             'datetimeH']]
+                                                             'datetimeR']]
         # filter df_alters and improve the speed of merge
-        df_alters = df_alters[df_alters['datetimeH'].isin(df_ego['datetimeH'])]
+        df_alters = df_alters[df_alters['datetimeR'].isin(df_ego['datetimeR'])]
         df_alters = df_alters[df_alters['placeid'].isin(df_ego['placeid'])]
 
         """ Here meetup means two users appear in the same placeid at the same time, so we merge two 
@@ -99,10 +98,14 @@ class Co_Locationship(object):
             .reset_index(name='count')
         return meetup
 
-    def build_network(self):
+    def build_network(self, freq='H'):
         """ Build network by concating the meetups for all users
+        :param freq: when comparing timestamp, which scale we use
         :return: merged dataframe with all the co_locators information
         """
+        self.freq = freq
+        self.pdata['datetimeR'] = pd.to_datetime(self.pdata['datetime']).dt.floor(freq)
+
         meetup_list = [self._find_co_locator(user) for user in self.userlist]
         user_meetup = pd.concat(meetup_list, sort=False)
         # 'meetup' as column name mean how many times ego and alter meetup.
@@ -149,7 +152,7 @@ class Co_Locationship(object):
         N_previous = max(PTs)
 
         """ Use LZ_cross_entropy function to compute L """
-        L, CE_alter = util.LZ_cross_entropy(alter_placeid, ego_placeid, PTs,
+        L, CE_alter = util.LZ_cross_entropy(alter_placeid, ego_placeid, PTs, both=True,
                                             lambdas=True, e=EPSILON)
 
         """ 'non_meetup' counts how many overlapped locations that are not co-locations """
@@ -158,26 +161,34 @@ class Co_Locationship(object):
         """  predictability """
         Pi_alter = util.getPredictability(length_ego_uni, CE_alter, e=EPSILON)
 
-        return N_previous, non_meetup, CE_alter, Pi_alter
+        """Compute ego + alter"""
+        alter_placeid_list = [alter_placeid, ego_placeid]
+        PTs_list = [PTs, list(range(len(ego_time)))]
+        CCE_ego_alter = util.cumulative_LZ_CE(alter_placeid_list, ego_placeid, PTs_list, e=EPSILON)
+        Pi_ego_alter = util.getPredictability(length_ego_uni, CCE_ego_alter, e=EPSILON)
+
+        return N_previous, non_meetup, CE_alter, Pi_alter, CCE_ego_alter, Pi_ego_alter
 
     def calculate_details(self):
         if self.network is None:
             raise ValueError('Please build network first')
         else:
-            N_previous, non_meetup, CE_alter, Pi_alter = zip(*self.network.apply(lambda row:
-                                                                                 self._calculate_pair(row.userid_x,
-                                                                                                      row.userid_y))
-                                                             )
+            N_previous, non_meetup, CE_alter, Pi_alter, CCE_ego_alter, Pi_ego_alter = zip(
+                *self.network.apply(lambda row:
+                                    self._calculate_pair(row.userid_x,
+                                                         row.userid_y))
+            )
             self.network_details = self.network.assign(N_previous=N_previous,
                                                        non_meetup=non_meetup,
                                                        CE_alter=CE_alter,
-                                                       Pi_alter=Pi_alter)
+                                                       Pi_alter=Pi_alter,
+                                                       CCE_ego_alter=CCE_ego_alter,
+                                                       Pi_ego_alter=Pi_ego_alter)
             return self.network_details
 
-    def quality_control(self):
+    def _quality_control(self):
         """
         Perform quality control
-        :return: qualified_network
         """
         if self.network_details is None:
             raise ValueError('Please build network details first')
@@ -188,12 +199,9 @@ class Co_Locationship(object):
 
             self.network_details = qualified_network
 
-            return qualified_network
-
-    def contribution_control(self):
+    def _contribution_control(self):
         """
         Perform contribution control
-        :return: contributed_network
         """
         if self.network_details is None:
             raise ValueError('Please build network details first')
@@ -203,6 +211,109 @@ class Co_Locationship(object):
             contributed_network = self.network_details[self.network_details['Pi_alter'] > 0]
             self.network_details = contributed_network
 
-            return contributed_network
+    def calculate_network(self, quality=True, contribution=True,
+                          verbose=False, filesave=False,
+                          **kwargs):
+        """
+        Calculate the details of the given network, especially cumulative cross entropy
+        :param quality: bool, whether perform quality control
+        :param contribution: bool, whetehr perform contribution control
+        :param verbose: bool, whether to show ego step by step
+        :param filesave: bool, whether to save the final network with details
+        :param **kwargs, 'by', 'ascending'
+        Sort alters by the criteria, method1, and then method2, for both of the methods,
+        we can choose one of them, 'meetup', 'N_previous', 'CE_alter', 'Pi_alter', 'non-meetup'
+        :return: processed network with detailed information
+        """
+
+        if quality:
+            self._quality_control()
+
+        if contribution:
+            self._contribution_control()
+
+        # sort alters by given criteria first
+        if ('by' in kwargs) & ('ascending' in kwargs):
+            self.network_details = self.network_details.sort_values(by=kwargs['by'],
+                                                                    ascending=kwargs['ascending'])
+
+        egolist = list(set(self.network_details['userid_x'].tolist()))
+
+        CCE_alters, Pi_alters, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi = zip(*[self._get_CCE_Pi(ego, verbose)
+                                                                                     for ego in egolist])
+
+        self.network_details = self.network.assign(CCE_alters=CCE_alters,
+                                                   Pi_alters=Pi_alters,
+                                                   CCE_ego_alters=CCE_ego_alters,
+                                                   Pi_ego_alters=Pi_ego_alters,
+                                                   LZ_entropy=LZ_entropy,
+                                                   Pi=Pi)
+        if filesave:
+            name = self.freq + 'network_details.csv'
+            self.network_details.to_csv(name)
+
+        return self.network_details
+
+    def _get_CCE_Pi(self, ego, verbose=False):
+        """
+        Get the CCE and Pi for ego
+        :param ego: ego name
+        :param verbose: bool, whether to show the ego in computation
+        :return: CCEs and Pis
+        """
+        ego_time, length_ego_uni, length_ego, ego_placeid = self._extract_info(ego)
+        alters = self.network_details[self.network_details['userid_x'] == ego]['userid_y'].tolist()
+        alters_placeid_list, PTs_list = zip(*[self._get_placeid_PT(ego_time, alter) for alter in alters])
+        CCE_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
+                                           W2=ego_placeid,
+                                           PTs_list=PTs_list,
+                                           individual=True,
+                                           e=EPSILON)
+        Pi_alters = [util.getPredictability(N=length_ego_uni,
+                                            S=x,
+                                            e=EPSILON) for x in CCE_alters]
+        # alters + ego
+        alters_placeid_list.append(ego_placeid)
+        PTs_list.append(list(range(len(ego_time))))
+        CCE_ego_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
+                                               W2=ego_placeid,
+                                               PTs_list=PTs_list,
+                                               individual=True,
+                                               e=EPSILON)
+        Pi_ego_alters = [util.getPredictability(N=length_ego_uni,
+                                                S=x,
+                                                e=EPSILON) for x in CCE_ego_alters]
+
+        N_alters = len(alters)
+        entropy = util.LZ_entropy(ego_placeid, e=EPSILON)
+        Pi = util.getPredictability(length_ego_uni, entropy, e=EPSILON)
+
+        if verbose:
+            print(ego)
+
+        return CCE_alters, Pi_alters, CCE_ego_alters, Pi_ego_alters, [entropy] * N_alters, [Pi] * N_alters
+
+    def _get_placeid_PT(self, ego_time, alter):
+        """
+        Get placeid and PT for alter
+        :param ego_time: ego time
+        :param alter: alter
+        :return: alter placeid sequence and PTs of alter based on ego
+        """
+        alter_time, _, _, alter_placeid = self._extract_info(alter)
+        total_time = sorted(ego_time + alter_time)
+        PTs = [(total_time.index(x) - ego_time.index(x)) for x in ego_time]
+        return alter_placeid, PTs
 
 
+class Social_Relationship(Co_Locationship):
+    """
+    Create a Social relationship network
+    """
+
+    def __init__(self, path, path_network, mins_records=150, **kwargs):
+        super(Social_Relationship, self).__init__(path, mins_records, **kwargs)
+
+        df_friend = pd.read_csv(path_network)
+        self.network = df_friend[
+            (df_friend['userid1'].isin(self.userlist)) & (df_friend['userid2'].isin(self.userlist))]
