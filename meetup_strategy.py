@@ -199,6 +199,7 @@ class Co_Locationship(object):
             raise ValueError('Please build network details first')
         else:
             # Remove alters which do not have contribution to ego
+            # Alter performs better than random algorithm if and only if Pi > 0
             contributed_network = self.network_details[self.network_details['Pi_alter'] > 0]
             self.network_details = contributed_network
 
