@@ -89,9 +89,9 @@ class Co_Locationship(object):
         meetup = df_ego.merge(df_alters,
                               how='left',
                               on=['placeid',
-                                  'datetimeH']).dropna()[['userid_x',
+                                  'datetimeR']).dropna()[['userid_x',
                                                           'placeid',
-                                                          'datetimeH',
+                                                          'datetimeR',
                                                           'userid_y']] \
             .drop_duplicates().groupby(['userid_x',
                                         'userid_y']).size() \
@@ -316,4 +316,5 @@ class Social_Relationship(Co_Locationship):
 
         df_friend = pd.read_csv(path_network)
         self.network = df_friend[
-            (df_friend['userid1'].isin(self.userlist)) & (df_friend['userid2'].isin(self.userlist))]
+            (df_friend[df_friend.columns[0]].isin(self.userlist)) & (df_friend[df_friend.columns[1]].isin(self.userlist))]
+        self.network.columns = ['userid_x', 'userid_y']
