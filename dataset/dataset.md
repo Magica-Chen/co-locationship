@@ -36,4 +36,4 @@ Dataset link: [https://www.yongliu.org/datasets/](https://www.yongliu.org/datase
 
 # All processed datasets
 
-All processed datasets (Weeplace, BrightKite, Gowalla) we used in this repo can be found in [Google Drive](https://drive.google.com/drive/folders/1gQQIc-fzEUnO143ZL2TY4eHoB8uDgSpT?usp=sharing).
+All processed datasets (Weeplace, BrightKite, Gowalla) we used in this repo can be found in [Google Drive](https://drive.google.com/drive/folders/1C71Atf4x7eTAEazAPehih5_zkBqqfX4M?usp=sharing).

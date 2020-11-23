@@ -176,7 +176,7 @@ class Co_Locationship(object):
             N_previous, non_meetup, CE_alter, Pi_alter, CCE_ego_alter, Pi_ego_alter = zip(
                 *self.network.apply(lambda row:
                                     self._calculate_pair(row.userid_x,
-                                                         row.userid_y))
+                                                         row.userid_y), axis=1)
             )
             self.network_details = self.network.assign(N_previous=N_previous,
                                                        non_meetup=non_meetup,
