@@ -171,7 +171,7 @@ class Co_Locationship(object):
         else:
             interim = self.network.copy()
             interim['N_previous'], interim['non_meetup'], interim['CE_alter'], interim['Pi_alter'] = zip(
-                *[self._calculate_pair(x, y) for x, y in zip(interim['userid_x', 'userid_y'])]
+                *[self._calculate_pair(x, y) for x, y in zip(interim['userid_x'], interim['userid_y'])]
             )
             self.network_details = interim
 
