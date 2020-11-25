@@ -7,7 +7,6 @@
 
 import numpy as np
 import pandas as pd
-import swifter
 import random
 from datetime import timedelta
 import util
@@ -165,7 +164,7 @@ class Co_Locationship(object):
 
         return N_previous, non_meetup, CE_alter, Pi_alter
 
-    def calculate_details(self):
+    def calculate_info(self):
         if self.network is None:
             raise ValueError('Please build network first')
         else:
