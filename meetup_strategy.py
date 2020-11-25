@@ -5,11 +5,13 @@
 # (c) Zexun Chen, 2020-11-12
 # sxtpy2010@gmail.com
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+import swifter
 import random
 from datetime import timedelta
 import util
+import time
 
 # from itertools import combinations
 # from itertools import chain
@@ -161,29 +163,17 @@ class Co_Locationship(object):
         """  predictability """
         Pi_alter = util.getPredictability(length_ego_uni, CE_alter, e=EPSILON)
 
-        """Compute ego + alter"""
-        alter_placeid_list = [alter_placeid, ego_placeid]
-        PTs_list = [PTs, list(range(len(ego_time)))]
-        CCE_ego_alter = util.cumulative_LZ_CE(alter_placeid_list, ego_placeid, PTs_list, e=EPSILON)
-        Pi_ego_alter = util.getPredictability(length_ego_uni, CCE_ego_alter, e=EPSILON)
-
-        return N_previous, non_meetup, CE_alter, Pi_alter, CCE_ego_alter, Pi_ego_alter
+        return N_previous, non_meetup, CE_alter, Pi_alter
 
     def calculate_details(self):
         if self.network is None:
             raise ValueError('Please build network first')
         else:
-            N_previous, non_meetup, CE_alter, Pi_alter, CCE_ego_alter, Pi_ego_alter = zip(
-                *self.network.apply(lambda row:
-                                    self._calculate_pair(row.userid_x,
-                                                         row.userid_y), axis=1)
-            )
-            self.network_details = self.network.assign(N_previous=N_previous,
-                                                       non_meetup=non_meetup,
-                                                       CE_alter=CE_alter,
-                                                       Pi_alter=Pi_alter,
-                                                       CCE_ego_alter=CCE_ego_alter,
-                                                       Pi_ego_alter=Pi_ego_alter)
+            interim = self.network.copy()
+            interim['N_previous'], interim['non_meetup'], interim['CE_alter'], interim['Pi_alter'] = zip(*interim[['userid_x', 'userid_y']].apply(lambda row: self._calculate_pair(row.userid_x, row.userid_y), axis=1)
+                                                                                                         )
+            self.network_details = interim
+
             return self.network_details
 
     def _quality_control(self):
