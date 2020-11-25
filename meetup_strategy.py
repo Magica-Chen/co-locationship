@@ -170,8 +170,11 @@ class Co_Locationship(object):
             raise ValueError('Please build network first')
         else:
             interim = self.network.copy()
-            interim['N_previous'], interim['non_meetup'], interim['CE_alter'], interim['Pi_alter'] = zip(*interim[['userid_x', 'userid_y']].apply(lambda row: self._calculate_pair(row.userid_x, row.userid_y), axis=1)
-                                                                                                         )
+            interim['N_previous'], interim['non_meetup'], interim['CE_alter'], interim['Pi_alter'] = zip(
+                *interim[['userid_x',
+                          'userid_y']].apply(
+                    lambda row: self._calculate_pair(row.userid_x, row.userid_y), axis=1)
+                )
             self.network_details = interim
 
             return self.network_details
@@ -306,5 +309,6 @@ class Social_Relationship(Co_Locationship):
 
         df_friend = pd.read_csv(path_network)
         self.network = df_friend[
-            (df_friend[df_friend.columns[0]].isin(self.userlist)) & (df_friend[df_friend.columns[1]].isin(self.userlist))]
+            (df_friend[df_friend.columns[0]].isin(self.userlist)) & (
+                df_friend[df_friend.columns[1]].isin(self.userlist))]
         self.network.columns = ['userid_x', 'userid_y']
