@@ -201,48 +201,69 @@ class Co_Locationship(object):
             contributed_network = self.network_details[self.network_details['Pi_alter'] > 0]
             self.network_details = contributed_network
 
-    def calculate_network(self, quality=True, contribution=True,
-                          verbose=False, filesave=False,
-                          **kwargs):
+    def network_control(self, quality=True, contribution=True, num_alters=10,
+                        **kwargs):
         """
-        Calculate the details of the given network, especially cumulative cross entropy
+        Apply some criteria to polish the network
         :param quality: bool, whether perform quality control
         :param contribution: bool, whetehr perform contribution control
+        :param num_alters: number, the minimum number of alters for a valid ego
+        :param **kwargs, Sorting task, you need to use keywords, 'by', 'ascending'
+        Sort alters by the criteria, [method1, .... methodN], for all of the methods,
+        we can choose one of them, 'meetup', 'N_previous', 'CE_alter', 'Pi_alter', 'non-meetup'
+        :param **kwargs, Set a threshold for N_previous, keyword, 'N_previous'
+        :return: polished network applying control criteria or sorting criteria
+        """
+        if self.network_details is None:
+            raise ValueError('Please build network details first')
+        else:
+            if quality:
+                self._quality_control()
+
+            if contribution:
+                self._contribution_control()
+
+            if num_alters:
+                alters_count = self.network_details.groupby('userid_x')['userid_y'].count().reset_index(name='count')
+                valid_egos = alters_count[alters_count['count'] >= num_alters]['userid_x'].tolist()
+                self.network_details = self.network_details[self.network_details['userid_x'].isin(valid_egos)]
+
+            # sort alters by given criteria first
+            if ('by' in kwargs) & ('ascending' in kwargs):
+                self.network_details = self.network_details.sort_values(by=kwargs['by'],
+                                                                        ascending=kwargs['ascending'])
+            # filter the network with minimum N_previous
+            if 'N_previous' in kwargs:
+                self.network_details = self.network_details[self.network_details['N_previous'] >= kwargs['N_previous']]
+
+            return self.network_details
+
+    def calculate_network(self, verbose=False, filesave=False):
+        """
+        Calculate the details of the given network, especially cumulative cross entropy
         :param verbose: bool, whether to show ego step by step
         :param filesave: bool, whether to save the final network with details
-        :param **kwargs, 'by', 'ascending'
-        Sort alters by the criteria, method1, and then method2, for both of the methods,
-        we can choose one of them, 'meetup', 'N_previous', 'CE_alter', 'Pi_alter', 'non-meetup'
         :return: processed network with detailed information
         """
+        if self.network_details is None:
+            raise ValueError('Please build network details first')
+        else:
+            egolist = list(set(self.network_details['userid_x'].tolist()))
 
-        if quality:
-            self._quality_control()
+            CCE_alters, Pi_alters, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi = zip(*[self._get_CCE_Pi(ego, verbose)
+                                                                                         for ego in egolist])
 
-        if contribution:
-            self._contribution_control()
+            self.network_details = self.network.assign(CCE_alters=CCE_alters,
+                                                       Pi_alters=Pi_alters,
+                                                       CCE_ego_alters=CCE_ego_alters,
+                                                       Pi_ego_alters=Pi_ego_alters,
+                                                       LZ_entropy=LZ_entropy,
+                                                       Pi=Pi)
+            if filesave:
+                name = self.freq + 'network_details.csv'
+                self.network_details.to_csv(name)
 
-        # sort alters by given criteria first
-        if ('by' in kwargs) & ('ascending' in kwargs):
-            self.network_details = self.network_details.sort_values(by=kwargs['by'],
-                                                                    ascending=kwargs['ascending'])
-
-        egolist = list(set(self.network_details['userid_x'].tolist()))
-
-        CCE_alters, Pi_alters, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi = zip(*[self._get_CCE_Pi(ego, verbose)
-                                                                                     for ego in egolist])
-
-        self.network_details = self.network.assign(CCE_alters=CCE_alters,
-                                                   Pi_alters=Pi_alters,
-                                                   CCE_ego_alters=CCE_ego_alters,
-                                                   Pi_ego_alters=Pi_ego_alters,
-                                                   LZ_entropy=LZ_entropy,
-                                                   Pi=Pi)
-        if filesave:
-            name = self.freq + 'network_details.csv'
-            self.network_details.to_csv(name)
-
-        return self.network_details
+            return self.network_details
 
     def _get_CCE_Pi(self, ego, verbose=False):
         """
