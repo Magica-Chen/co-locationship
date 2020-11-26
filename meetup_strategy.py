@@ -223,6 +223,11 @@ class Co_Locationship(object):
             if contribution:
                 self._contribution_control()
 
+            # filter the network with minimum N_previous
+            if 'N_previous' in kwargs:
+                self.network_details = self.network_details[self.network_details['N_previous'] >= kwargs['N_previous']]
+
+            # should apply fitler N_previous first if used, and then count the number of alters
             if num_alters:
                 alters_count = self.network_details.groupby('userid_x')['userid_y'].count().reset_index(name='count')
                 valid_egos = alters_count[alters_count['count'] >= num_alters]['userid_x'].tolist()
@@ -232,9 +237,6 @@ class Co_Locationship(object):
             if ('by' in kwargs) & ('ascending' in kwargs):
                 self.network_details = self.network_details.sort_values(by=kwargs['by'],
                                                                         ascending=kwargs['ascending'])
-            # filter the network with minimum N_previous
-            if 'N_previous' in kwargs:
-                self.network_details = self.network_details[self.network_details['N_previous'] >= kwargs['N_previous']]
 
             return self.network_details
 
