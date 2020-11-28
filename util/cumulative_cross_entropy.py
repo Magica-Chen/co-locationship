@@ -10,13 +10,14 @@ from util.cross_entropy import LZ_cross_entropy
 from util.entropy import LZ_entropy
 
 
-def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False,
+def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False, ego_include=False,
                      e=2):
     """ Cumulative LZ cross entropy
     :param W1_list: nested list filled in many alters' sequences
     :param W2: ego's sequence
     :param PTs_list: nested list filled in many alters' PTs
     :param individual: list all cumulative cross entropy add alters one by one
+    :param ego_include: whether the cumulative_LZ_CE includes ego
     :param e: minimum length of sequence
     :return: cumulative LZ cross entropy
 
@@ -37,17 +38,33 @@ def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False,
         if individual:
             # allocate a empty list to save all CCE
             CCE = []
-            for W1, PTs in zip(W1_list, PTs_list):
-                alters_len.append(len(W1))
-                alters_L.append(LZ_cross_entropy(W1, W2, PTs, lambdas=True, e=e))
-                # count how many element > 1, which is wb
-                wb.append(sum(1 for x in alters_L[-1] if x > 1))
+            if ego_include:
+                for W1, PTs in zip(W1_list, PTs_list):
+                    alters_len.append(len(W1))
+                    alters_L.append(LZ_cross_entropy(W1, W2, PTs, lambdas=True, e=e))
+                    # count how many element > 1, which is wb
+                    wb.append(sum(1 for x in alters_L[-1] if x > 1))
 
-                alters_Lmax = np.amax(alters_L, axis=0)
-                sum_L = sum(alters_Lmax)
-                ave_length = np.average(alters_len, weights=wb)
-                # append all CCE one by one
-                CCE.append((1.0 * ego_len / sum_L) * np.log2(ave_length))
+                    # add ego_len to alters_len and alters_L
+                    ego_L = LZ_entropy(W2, lambdas=True, e=2)
+                    wb_ego = wb.append(sum(1 for x in ego_L if x > 1))
+                    alters_Lmax = np.amax(alters_L + [ego_L], axis=0)
+                    sum_L = sum(alters_Lmax)
+                    ave_length = np.average(alters_len + [ego_len], weights=wb_ego)
+                    # append all CCE one by one
+                    CCE.append((1.0 * ego_len / sum_L) * np.log2(ave_length))
+            else:
+                for W1, PTs in zip(W1_list, PTs_list):
+                    alters_len.append(len(W1))
+                    alters_L.append(LZ_cross_entropy(W1, W2, PTs, lambdas=True, e=e))
+                    # count how many element > 1, which is wb
+                    wb.append(sum(1 for x in alters_L[-1] if x > 1))
+
+                    alters_Lmax = np.amax(alters_L, axis=0)
+                    sum_L = sum(alters_Lmax)
+                    ave_length = np.average(alters_len, weights=wb)
+                    # append all CCE one by one
+                    CCE.append((1.0 * ego_len / sum_L) * np.log2(ave_length))
             return CCE
         else:
             for W1, PTs in zip(W1_list, PTs_list):

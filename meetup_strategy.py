@@ -287,12 +287,11 @@ class Co_Locationship(object):
                                             S=x,
                                             e=EPSILON) for x in CCE_alters]
         # alters + ego
-        alters_placeid_list.append(ego_placeid)
-        PTs_list.append(list(range(len(ego_time))))
         CCE_ego_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
                                                W2=ego_placeid,
                                                PTs_list=PTs_list,
                                                individual=True,
+                                               ego_include=True,
                                                e=EPSILON)
         Pi_ego_alters = [util.getPredictability(N=length_ego_uni,
                                                 S=x,
