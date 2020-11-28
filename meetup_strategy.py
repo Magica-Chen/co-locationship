@@ -8,9 +8,7 @@
 import numpy as np
 import pandas as pd
 import random
-from datetime import timedelta
 import util
-import time
 
 # from itertools import combinations
 # from itertools import chain
@@ -276,8 +274,9 @@ class Co_Locationship(object):
         """
         ego_time, length_ego_uni, length_ego, ego_placeid = self._extract_info(ego)
         alters = self.network_details[self.network_details['userid_x'] == ego]['userid_y'].tolist()
-        alters_placeid_list, PTs_list = zip(*[self._get_placeid_PT(ego_time, alter) for alter in alters])
-        alters_placeid_list, PTs_list = list(alters_placeid_list), list(PTs_list)
+        alters_placeid_tuple, PTs_tuple = zip(*[self._get_placeid_PT(ego_time, alter) for alter in alters])
+        # concat a tuple of list to a list
+        alters_placeid_list, PTs_list = util.tuple_concat(alters_placeid_tuple), util.tuple_concat(PTs_tuple)
         
         CCE_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
                                            W2=ego_placeid,
