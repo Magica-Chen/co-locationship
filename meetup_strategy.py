@@ -250,17 +250,17 @@ class Co_Locationship(object):
         if self.network_details is None:
             raise ValueError('Please build network details first')
         else:
-            egolist = list(set(self.network_details['userid_x'].tolist()))
+            egolist = sorted(list(set(self.network_details['userid_x'].tolist())))
 
             CCE_alters, Pi_alters, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi = zip(*[self._get_CCE_Pi(ego, verbose)
                                                                                          for ego in egolist])
 
-            self.network_details = self.network.assign(CCE_alters=CCE_alters,
-                                                       Pi_alters=Pi_alters,
-                                                       CCE_ego_alters=CCE_ego_alters,
-                                                       Pi_ego_alters=Pi_ego_alters,
-                                                       LZ_entropy=LZ_entropy,
-                                                       Pi=Pi)
+            self.network_details = self.network_details.assign(CCE_alters=CCE_alters,
+                                                               Pi_alters=Pi_alters,
+                                                               CCE_ego_alters=CCE_ego_alters,
+                                                               Pi_ego_alters=Pi_ego_alters,
+                                                               LZ_entropy=LZ_entropy,
+                                                               Pi=Pi)
             if filesave:
                 name = self.freq + 'network_details.csv'
                 self.network_details.to_csv(name)
@@ -277,6 +277,8 @@ class Co_Locationship(object):
         ego_time, length_ego_uni, length_ego, ego_placeid = self._extract_info(ego)
         alters = self.network_details[self.network_details['userid_x'] == ego]['userid_y'].tolist()
         alters_placeid_list, PTs_list = zip(*[self._get_placeid_PT(ego_time, alter) for alter in alters])
+        alters_placeid_list, PTs_list = list(alters_placeid_list), list(PTs_list)
+        
         CCE_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
                                            W2=ego_placeid,
                                            PTs_list=PTs_list,
