@@ -252,13 +252,14 @@ class Co_Locationship(object):
 
             CCE_alters, Pi_alters, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi = zip(*[self._get_CCE_Pi(ego, verbose)
                                                                                          for ego in egolist])
-
-            self.network_details = self.network_details.assign(CCE_alters=CCE_alters,
-                                                               Pi_alters=Pi_alters,
-                                                               CCE_ego_alters=CCE_ego_alters,
-                                                               Pi_ego_alters=Pi_ego_alters,
-                                                               LZ_entropy=LZ_entropy,
-                                                               Pi=Pi)
+            # need to concat a tuple of list to a list
+            self.network_details = self.network_details.assign(CCE_alters=util.tuple_concat(CCE_alters),
+                                                               Pi_alters=util.tuple_concat(Pi_alters),
+                                                               CCE_ego_alters=util.tuple_concat(CCE_ego_alters),
+                                                               Pi_ego_alters=util.tuple_concat(Pi_ego_alters),
+                                                               LZ_entropy=util.tuple_concat(LZ_entropy),
+                                                               Pi=util.tuple_concat(Pi)
+                                                               )
             if filesave:
                 name = self.freq + 'network_details.csv'
                 self.network_details.to_csv(name)
@@ -275,8 +276,7 @@ class Co_Locationship(object):
         ego_time, length_ego_uni, length_ego, ego_placeid = self._extract_info(ego)
         alters = self.network_details[self.network_details['userid_x'] == ego]['userid_y'].tolist()
         alters_placeid_tuple, PTs_tuple = zip(*[self._get_placeid_PT(ego_time, alter) for alter in alters])
-        # concat a tuple of list to a list
-        alters_placeid_list, PTs_list = util.tuple_concat(alters_placeid_tuple), util.tuple_concat(PTs_tuple)
+        alters_placeid_list, PTs_list = list(alters_placeid_tuple), list(PTs_tuple)
         
         CCE_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
                                            W2=ego_placeid,
