@@ -46,8 +46,8 @@ def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False, ego_include=False,
                     wb.append(sum(1 for x in alters_L[-1] if x > 1))
 
                     # add ego_len to alters_len and alters_L
-                    ego_L = LZ_entropy(W2, lambdas=True, e=2)
-                    wb_ego = wb.append(sum(1 for x in ego_L if x > 1))
+                    ego_L = LZ_entropy(W2, lambdas=True, e=e)
+                    wb_ego = wb + [sum(1 for x in ego_L if x > 1)]
                     alters_Lmax = np.amax(alters_L + [ego_L], axis=0)
                     sum_L = sum(alters_Lmax)
                     ave_length = np.average(alters_len + [ego_len], weights=wb_ego)
@@ -80,4 +80,4 @@ def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False, ego_include=False,
             CCE = (1.0 * ego_len / sum_L) * np.log2(ave_length)
             return CCE
     else:
-        return LZ_cross_entropy(W1_list, W2, PTs_list, e=2)
+        return LZ_cross_entropy(W1_list, W2, PTs_list, e=e)

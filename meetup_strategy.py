@@ -38,7 +38,7 @@ class Co_Locationship(object):
                                          **kwargs)
         # all the following computations are based on processed data
         self.userlist = sorted(list(set(self.pdata['userid'].tolist())))
-        self.freq = None
+        self.freq = 'H'
         if 'placeidT' in kwargs:
             self.placeidT = kwargs['placeidT']
         else:
@@ -250,11 +250,15 @@ class Co_Locationship(object):
         else:
             egolist = sorted(list(set(self.network_details['userid_x'].tolist())))
 
-            CCE_alters, Pi_alters, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi = zip(*[self._get_CCE_Pi(ego, verbose)
-                                                                                         for ego in egolist])
+            CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi = zip(
+                *[self._get_CCE_Pi(ego, verbose)
+                  for ego in egolist]
+            )
             # need to concat a tuple of list to a list
             self.network_details = self.network_details.assign(CCE_alters=util.tuple_concat(CCE_alters),
                                                                Pi_alters=util.tuple_concat(Pi_alters),
+                                                               CCE_ego_alter=util.tuple_concat(CCE_ego_alter),
+                                                               Pi_ego_alter=util.tuple_concat(Pi_ego_alter),
                                                                CCE_ego_alters=util.tuple_concat(CCE_ego_alters),
                                                                Pi_ego_alters=util.tuple_concat(Pi_ego_alters),
                                                                LZ_entropy=util.tuple_concat(LZ_entropy),
@@ -277,7 +281,8 @@ class Co_Locationship(object):
         alters = self.network_details[self.network_details['userid_x'] == ego]['userid_y'].tolist()
         alters_placeid_tuple, PTs_tuple = zip(*[self._get_placeid_PT(ego_time, alter) for alter in alters])
         alters_placeid_list, PTs_list = list(alters_placeid_tuple), list(PTs_tuple)
-        
+
+        # alters
         CCE_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
                                            W2=ego_placeid,
                                            PTs_list=PTs_list,
@@ -286,6 +291,18 @@ class Co_Locationship(object):
         Pi_alters = [util.getPredictability(N=length_ego_uni,
                                             S=x,
                                             e=EPSILON) for x in CCE_alters]
+
+        # alter + ego (single alter + ego)
+        CCE_ego_alter = [util.cumulative_LZ_CE(W1_list=[alter_placeid, ego_placeid],
+                                               W2=ego_placeid,
+                                               PTs_list=[PT, list(range(len(ego_time)))],
+                                               individual=False,
+                                               e=EPSILON) for alter_placeid, PT in zip(alters_placeid_list,
+                                                                                       PTs_list)]
+        Pi_ego_alter = [util.getPredictability(N=length_ego_uni,
+                                               S=x,
+                                               e=EPSILON) for x in CCE_ego_alter]
+
         # alters + ego
         CCE_ego_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
                                                W2=ego_placeid,
@@ -304,7 +321,8 @@ class Co_Locationship(object):
         if verbose:
             print(ego)
 
-        return CCE_alters, Pi_alters, CCE_ego_alters, Pi_ego_alters, [entropy] * N_alters, [Pi] * N_alters
+        return CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, \
+               CCE_ego_alters, Pi_ego_alters, [entropy] * N_alters, [Pi] * N_alters
 
     def _get_placeid_PT(self, ego_time, alter):
         """
@@ -332,3 +350,4 @@ class Social_Relationship(Co_Locationship):
             (df_friend[df_friend.columns[0]].isin(self.userlist)) & (
                 df_friend[df_friend.columns[1]].isin(self.userlist))]
         self.network.columns = ['userid_x', 'userid_y']
+        self.freq = 'SRN'
