@@ -265,7 +265,7 @@ class Co_Locationship(object):
                                                                Pi=util.tuple_concat(Pi)
                                                                )
             if filesave:
-                name = self.freq + 'network_details.csv'
+                name = self.freq + '_network_details.csv'
                 self.network_details.to_csv(name)
 
             return self.network_details
