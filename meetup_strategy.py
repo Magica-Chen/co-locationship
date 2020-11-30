@@ -273,9 +273,9 @@ class Co_Locationship(object):
 
     def result_save(self, **kwargs):
         if 'name' in kwargs:
-            name = kwargs['name'] + '_CLN_network_details_' + self.freq + '.csv'
+            name = kwargs['name'] + '_CLN_network_details_' + str(self.freq) + '.csv'
         else:
-            name = 'CLN_network_details_' + self.freq + '.csv'
+            name = 'CLN_network_details_' + str(self.freq) + '.csv'
         self.network_details.to_csv(name)
 
     def _get_CCE_Pi(self, ego, verbose=False):
@@ -462,7 +462,7 @@ class Social_Relationship(Co_Locationship):
 
     def result_save(self, **kwargs):
         if 'name' in kwargs:
-            name = kwargs['name'] + '_SRN_network_details_' + self.freq + '.csv'
+            name = kwargs['name'] + '_SRN_network_details_' + str(self.freq) + '.csv'
         else:
-            name = 'SRN_network_details_' + self.freq + '.csv'
+            name = 'SRN_network_details_' + str(self.freq) + '.csv'
         self.network_details.to_csv(name)
