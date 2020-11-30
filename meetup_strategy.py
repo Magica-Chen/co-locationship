@@ -138,7 +138,7 @@ class Co_Locationship(object):
         """
         :param ego: ego
         :param alter:  alter
-        :return: N_previous, non_meetup, CE_alter, Pi_alter
+        :return: N_previous, n_prev_match, CE_alter, Pi_alter
         """
         ego_time, length_ego_uni, length_ego, ego_placeid = self._extract_info(ego)
         alter_time, length_alter_uni, length_alter, alter_placeid = self._extract_info(alter)
@@ -156,20 +156,20 @@ class Co_Locationship(object):
         L, CE_alter = util.LZ_cross_entropy(alter_placeid, ego_placeid, PTs, both=True,
                                             lambdas=True, e=EPSILON)
 
-        """ 'non_meetup' counts how many overlapped locations that are not co-locations """
-        non_meetup = sum(L) - length_ego
+        """ 'n_prev_match' counts how many locations of ego have been previously seen by alters  """
+        n_prev_match = sum(L) - length_ego
 
         """  predictability """
         Pi_alter = util.getPredictability(length_ego_uni, CE_alter, e=EPSILON)
 
-        return N_previous, non_meetup, CE_alter, Pi_alter
+        return N_previous, n_prev_match, CE_alter, Pi_alter
 
     def calculate_info(self):
         if self.network is None:
             raise ValueError('Please build network first')
         else:
             interim = self.network.copy()
-            interim['N_previous'], interim['non_meetup'], interim['CE_alter'], interim['Pi_alter'] = zip(
+            interim['N_previous'], interim['n_prev_match'], interim['CE_alter'], interim['Pi_alter'] = zip(
                 *[self._calculate_pair(x, y) for x, y in zip(interim['userid_x'], interim['userid_y'])]
             )
             self.network_details = interim
@@ -184,8 +184,7 @@ class Co_Locationship(object):
             raise ValueError('Please build network details first')
         else:
             # Remove ego-alter pairs which are not qualified
-            qualified_network = self.network_details[(self.network_details['meetup'] > 1) &
-                                                     (self.network_details['non_meetup'] > 0)]
+            qualified_network = self.network_details[self.network_details['meetup'] > 1]
 
             self.network_details = qualified_network
 
@@ -198,7 +197,9 @@ class Co_Locationship(object):
         else:
             # Remove alters which do not have contribution to ego
             # Alter performs better than random algorithm if and only if Pi > 0
-            contributed_network = self.network_details[self.network_details['Pi_alter'] > 0]
+            contributed_network = self.network_details[(self.network_details['Pi_alter'] > 0) &
+                                                       (self.network_details['n_prev_match'] > 0)
+                                                       ]
             self.network_details = contributed_network
 
     def network_control(self, quality=True, contribution=True, num_alters=10,
@@ -210,7 +211,7 @@ class Co_Locationship(object):
         :param num_alters: number, the minimum number of alters for a valid ego
         :param **kwargs, Sorting task, you need to use keywords, 'by', 'ascending'
         Sort alters by the criteria, [method1, .... methodN], for all of the methods,
-        we can choose one of them, 'meetup', 'N_previous', 'CE_alter', 'Pi_alter', 'non-meetup'
+        we can choose one of them, 'meetup', 'N_previous', 'CE_alter', 'Pi_alter', 'n_prev_match'
         :param **kwargs, Set a threshold for N_previous, keyword, 'N_previous'
         :return: polished network applying control criteria or sorting criteria
         """
@@ -369,7 +370,7 @@ class Social_Relationship(Co_Locationship):
         :param num_alters: number, the minimum number of alters for a valid ego
         :param **kwargs, Sorting task, you need to use keywords, 'by', 'ascending'
         Sort alters by the criteria, [method1, .... methodN], for all of the methods,
-        we can choose one of them, 'meetup', 'N_previous', 'CE_alter', 'Pi_alter', 'non-meetup'
+        we can choose one of them, 'meetup', 'N_previous', 'CE_alter', 'Pi_alter', 'n_prev_match'
         :param **kwargs, Should specific, 'freq' if "meetup" is used to sort network
         :param **kwargs, Set a threshold for N_previous, keyword, 'N_previous'
         :return: polished network applying control criteria or sorting criteria

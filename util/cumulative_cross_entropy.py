@@ -60,11 +60,14 @@ def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False, ego_include=False,
                     # count how many element > 1, which is wb
                     wb.append(sum(1 for x in alters_L[-1] if x > 1))
 
-                    alters_Lmax = np.amax(alters_L, axis=0)
-                    sum_L = sum(alters_Lmax)
-                    ave_length = np.average(alters_len, weights=wb)
-                    # append all CCE one by one
-                    CCE.append((1.0 * ego_len / sum_L) * np.log2(ave_length))
+                    if sum(wb) != 0:
+                        alters_Lmax = np.amax(alters_L, axis=0)
+                        sum_L = sum(alters_Lmax)
+                        ave_length = np.average(alters_len, weights=wb)
+                        # append all CCE one by one
+                        CCE.append((1.0 * ego_len / sum_L) * np.log2(ave_length))
+                    else:
+                        CCE.append(np.nan)
             return CCE
         else:
             for W1, PTs in zip(W1_list, PTs_list):
@@ -73,11 +76,14 @@ def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False, ego_include=False,
                 # count how many element > 1, which is wb
                 wb.append(sum(1 for x in alters_L[-1] if x > 1))
 
-            alters_Lmax = np.amax(alters_L, axis=0)
-            sum_L = sum(alters_Lmax)
-            ave_length = np.average(alters_len, weights=wb)
-            # compute cumulative cross entropy
-            CCE = (1.0 * ego_len / sum_L) * np.log2(ave_length)
-            return CCE
+            if wb != 0:
+                alters_Lmax = np.amax(alters_L, axis=0)
+                sum_L = sum(alters_Lmax)
+                ave_length = np.average(alters_len, weights=wb)
+                # compute cumulative cross entropy
+                CCE = (1.0 * ego_len / sum_L) * np.log2(ave_length)
+                return CCE
+            else:
+                return np.nan
     else:
         return LZ_cross_entropy(W1_list, W2, PTs_list, e=e)
