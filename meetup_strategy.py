@@ -267,13 +267,16 @@ class Co_Locationship(object):
                                                                Pi=util.tuple_concat(Pi)
                                                                )
             if filesave:
-                if 'name' in kwargs:
-                    name = kwargs['name'] + '_CLN_network_details_' + self.freq + '.csv'
-                else:
-                    name = 'CLN_network_details_' + self.freq + '.csv'
-                self.network_details.to_csv(name)
+                self.result_save(**kwargs)
 
             return self.network_details
+
+    def result_save(self, **kwargs):
+        if 'name' in kwargs:
+            name = kwargs['name'] + '_CLN_network_details_' + self.freq + '.csv'
+        else:
+            name = 'CLN_network_details_' + self.freq + '.csv'
+        self.network_details.to_csv(name)
 
     def _get_CCE_Pi(self, ego, verbose=False):
         """
@@ -456,3 +459,10 @@ class Social_Relationship(Co_Locationship):
             meetup = sum([x[1] for x in count_tuple if x[1] > 0])
 
         return meetup
+
+    def result_save(self, **kwargs):
+        if 'name' in kwargs:
+            name = kwargs['name'] + '_SRN_network_details_' + self.freq + '.csv'
+        else:
+            name = 'SRN_network_details_' + self.freq + '.csv'
+        self.network_details.to_csv(name)
