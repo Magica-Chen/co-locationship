@@ -9,10 +9,12 @@ import numpy as np
 import pandas as pd
 import random
 import util
+from collections import Counter
+from collections import OrderedDict
+from datetime import timedelta
 
 # from itertools import combinations
 # from itertools import chain
-# from collections import Counter
 
 SEED = 2020  # set random seed for our random function
 EPSILON = 2  # set the basic number to compute variables
@@ -238,7 +240,7 @@ class Co_Locationship(object):
 
             return self.network_details
 
-    def calculate_network(self, verbose=False, filesave=False):
+    def calculate_network(self, verbose=False, filesave=False, **kwargs):
         """
         Calculate the details of the given network, especially cumulative cross entropy
         :param verbose: bool, whether to show ego step by step
@@ -265,7 +267,10 @@ class Co_Locationship(object):
                                                                Pi=util.tuple_concat(Pi)
                                                                )
             if filesave:
-                name = self.freq + '_network_details.csv'
+                if 'name' in kwargs:
+                    name = kwargs['name'] + '_CLN_network_details_' + self.freq + '.csv'
+                else:
+                    name = 'CLN_network_details_' + self.freq + '.csv'
                 self.network_details.to_csv(name)
 
             return self.network_details
@@ -350,4 +355,104 @@ class Social_Relationship(Co_Locationship):
             (df_friend[df_friend.columns[0]].isin(self.userlist)) & (
                 df_friend[df_friend.columns[1]].isin(self.userlist))]
         self.network.columns = ['userid_x', 'userid_y']
-        self.freq = 'SRN'
+        self.freq = 'H'
+
+    def network_control(self, contribution=True, num_alters=10,
+                        **kwargs):
+        """
+        Apply some criteria to polish the network
+        :param freq: string, only useful if sorting applies
+        :param contribution: bool, whetehr perform contribution control
+        :param num_alters: number, the minimum number of alters for a valid ego
+        :param **kwargs, Sorting task, you need to use keywords, 'by', 'ascending'
+        Sort alters by the criteria, [method1, .... methodN], for all of the methods,
+        we can choose one of them, 'meetup', 'N_previous', 'CE_alter', 'Pi_alter', 'non-meetup'
+        :param **kwargs, Should specific, 'freq' if "meetup" is used to sort network
+        :param **kwargs, Set a threshold for N_previous, keyword, 'N_previous'
+        :return: polished network applying control criteria or sorting criteria
+        """
+
+        if self.network_details is None:
+            raise ValueError('Please build network details first')
+        else:
+            # if quality:
+            #     self._quality_control()
+
+            if contribution:
+                self._contribution_control()
+
+            # filter the network with minimum N_previous
+            if 'N_previous' in kwargs:
+                self.network_details = self.network_details[self.network_details['N_previous'] >= kwargs['N_previous']]
+
+            # should apply fitler N_previous first if used, and then count the number of alters
+            if num_alters:
+                alters_count = self.network_details.groupby('userid_x')['userid_y'].count().reset_index(name='count')
+                valid_egos = alters_count[alters_count['count'] >= num_alters]['userid_x'].tolist()
+                self.network_details = self.network_details[self.network_details['userid_x'].isin(valid_egos)]
+
+            # sort alters by given criteria first
+            if ('by' in kwargs) & ('ascending' in kwargs):
+                if 'freq' in kwargs:
+                    self.freq = kwargs['freq']
+                if 'meetup' in kwargs['by']:
+                    interim = self.network_details.copy()
+                    interim['meetup'] = [self._count_meetup(x, y) for x, y in zip(interim['userid_x'],
+                                                                                  interim['userid_y'])
+                                         ]
+                    self.network_details = interim
+
+                self.network_details = self.network_details.sort_values(by=kwargs['by'],
+                                                                        ascending=kwargs['ascending'])
+
+            return self.network_details
+
+    def _count_meetup(self, ego, alter):
+        ego_info = self.placeidT[ego]
+        ego_placeid = ego_info['placeid'].astype(str).values.tolist()
+
+        alter_info = self.placeidT[alter]
+        alter_placeid = alter_info['placeid'].astype(str).values.tolist()
+        overlap = list(set(ego_placeid) & set(alter_placeid))
+
+        if len(overlap) == 0:
+            meetup = 0
+        else:
+            count_result = Counter()
+            if isinstance(self.freq, int):
+                ego_time = pd.to_datetime(ego_info.index).tolist()
+
+                # if freq is int, it is time_delta
+                alter_time = pd.to_datetime(alter_info.index).tolist()
+                for t, w in zip(ego_time, ego_placeid):
+                    if w in overlap:
+                        # find the corresponding time where has overlap
+                        start_time = t + timedelta(seconds=-self.freq)
+                        end_time = t + timedelta(seconds=self.freq)
+                        ids = util.fast_indices(alter_placeid, w)
+                        count_result[w] += sum([1 for i in ids
+                                                if (alter_time[i] >= start_time) & (
+                                                        alter_time[i] <= end_time)])
+
+            else:
+                ego_info['datetimeR'] = pd.to_datetime(ego_info.index).floor(self.freq)
+                ego_info = ego_info.drop_duplicates()
+                ego_time = ego_info['datetimeR'].tolist()
+                ego_placeid = ego_info['placeid'].astype(str).values.tolist()
+
+                alter_info['datetimeR'] = pd.to_datetime(alter_info.index).floor(self.freq)
+                alter_info = alter_info.drop_duplicates()
+                alter_time = alter_info['datetimeR'].tolist()
+                alter_placeid = alter_info['placeid'].astype(str).values.tolist()
+
+                for t, w in zip(ego_time, ego_placeid):
+                    if w in overlap:
+                        # find the corresponding time where has the overlap
+                        t = t.floor(self.freq)
+                        ids = util.fast_indices(alter_placeid, w)
+                        count_result[w] += sum([1 for i in ids if t == alter_time[i]])
+
+            count_tuple = count_result.most_common()
+            meetup = sum([x[1] for x in count_tuple if x[1] > 0])
+
+        return meetup
