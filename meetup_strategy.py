@@ -400,7 +400,7 @@ class Social_Relationship(Co_Locationship):
             if ('by' in kwargs) & ('ascending' in kwargs):
                 if 'freq' in kwargs:
                     self.freq = kwargs['freq']
-                if 'meetup' in kwargs['by']:
+                if ('meetup' in kwargs['by']) & ('meetup' not in self.network_details.columns):
                     interim = self.network_details.copy()
                     interim['meetup'] = [self._count_meetup(x, y) for x, y in zip(interim['userid_x'],
                                                                                   interim['userid_y'])
