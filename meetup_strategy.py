@@ -253,12 +253,13 @@ class Co_Locationship(object):
         else:
             egolist = sorted(list(set(self.network_details['userid_x'].tolist())))
 
-            CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi = zip(
+            CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi, rank = zip(
                 *[self._get_CCE_Pi(ego, verbose)
                   for ego in egolist]
             )
             # need to concat a tuple of list to a list
-            self.network_details = self.network_details.assign(CCE_alters=util.tuple_concat(CCE_alters),
+            self.network_details = self.network_details.assign(Rank=util.tuple_concat(rank),
+                                                               CCE_alters=util.tuple_concat(CCE_alters),
                                                                Pi_alters=util.tuple_concat(Pi_alters),
                                                                CCE_ego_alter=util.tuple_concat(CCE_ego_alter),
                                                                Pi_ego_alter=util.tuple_concat(Pi_ego_alter),
@@ -329,9 +330,9 @@ class Co_Locationship(object):
 
         if verbose:
             print(ego)
-
+        # last return value is rank
         return CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, \
-               CCE_ego_alters, Pi_ego_alters, [entropy] * N_alters, [Pi] * N_alters
+               CCE_ego_alters, Pi_ego_alters, [entropy] * N_alters, [Pi] * N_alters, list(range(1, N_alters + 1))
 
     def _get_placeid_PT(self, ego_time, alter):
         """
