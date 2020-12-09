@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Class for co-locationship, meetup_strategy
-# (c) Zexun Chen, 2020-11-12
+# Class for co-locationship and social relationship strategy
+# (c) Zexun Chen, 2020-12-09
 # sxtpy2010@gmail.com
 
-import numpy as np
 import pandas as pd
-import random
 import util
 from collections import Counter
-from collections import OrderedDict
 from datetime import timedelta
-
-# from itertools import combinations
-# from itertools import chain
 
 SEED = 2020  # set random seed for our random function
 EPSILON = 2  # set the basic number to compute variables
