@@ -34,6 +34,8 @@ class Co_Locationship(object):
                                          **kwargs)
         # all the following computations are based on processed data
         self.userlist = sorted(list(set(self.pdata['userid'].tolist())))
+        self.final_userlist = None
+
         self.freq = 'H'
         if 'placeidT' in kwargs:
             self.placeidT = kwargs['placeidT']
@@ -265,6 +267,7 @@ class Co_Locationship(object):
                                                                ODLR=util.tuple_concat(ODLR),
                                                                CODLR=util.tuple_concat(CODLR)
                                                                )
+            self.final_userlist = sorted(list(set(self.network_details['userid_x'].tolist())))
             if filesave:
                 self.result_save(**kwargs)
 

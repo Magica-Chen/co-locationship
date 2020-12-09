@@ -6,6 +6,7 @@
 
 import functools
 import operator
+import pickle
 
 
 def fast_indices(lst, element):
@@ -24,3 +25,12 @@ def tuple_concat(x):
     # concat a tuple of list to a list
     return functools.reduce(operator.iconcat, x, [])
 
+
+def save_object(obj, filename):
+    with open(filename, 'wb') as output:  # Overwrites any existing file.
+        pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
+
+
+def read_object(filename):
+    with open(filename, 'rb') as obj:  # Overwrites any existing file.
+        return pickle.load(obj)
