@@ -253,8 +253,9 @@ class Co_Locationship(object):
         else:
             egolist = sorted(list(set(self.network_details['userid_x'].tolist())))
 
-            CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi, rank = zip(
-                *[self._get_CCE_Pi(ego, verbose)
+            CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, CCE_ego_alters, Pi_ego_alters, LZ_entropy, Pi, \
+            rank, ODLR, CODLR = zip(
+                *[self._get_ego_info(ego, verbose)
                   for ego in egolist]
             )
             # need to concat a tuple of list to a list
@@ -266,7 +267,9 @@ class Co_Locationship(object):
                                                                CCE_ego_alters=util.tuple_concat(CCE_ego_alters),
                                                                Pi_ego_alters=util.tuple_concat(Pi_ego_alters),
                                                                LZ_entropy=util.tuple_concat(LZ_entropy),
-                                                               Pi=util.tuple_concat(Pi)
+                                                               Pi=util.tuple_concat(Pi),
+                                                               ODLR=util.tuple_concat(ODLR),
+                                                               CODLR=util.tuple_concat(CODLR)
                                                                )
             if filesave:
                 self.result_save(**kwargs)
@@ -280,17 +283,29 @@ class Co_Locationship(object):
             name = 'CLN_network_details_' + str(self.freq) + '.csv'
         self.network_details.to_csv(name)
 
-    def _get_CCE_Pi(self, ego, verbose=False):
+    def _get_ego_info(self, ego, verbose=False):
         """
-        Get the CCE and Pi for ego
+        Get ego info, including, CE, CP, CE+ego, CP+ego, CCE, CCP, CCE+ego, CCP+egp, Rank, ODLR, CODLR
         :param ego: ego name
         :param verbose: bool, whether to show the ego in computation
-        :return: CCEs and Pis
+        :return: CE, CP, CE+ego, CP+ego, CCE, CCP, CCE+ego, CCP+egp, Rank, ODLR, CODLR
         """
         ego_time, length_ego_uni, length_ego, ego_placeid = self._extract_info(ego)
         alters = self.network_details[self.network_details['userid_x'] == ego]['userid_y'].tolist()
         alters_placeid_tuple, PTs_tuple = zip(*[self._get_placeid_PT(ego_time, alter) for alter in alters])
         alters_placeid_list, PTs_list = list(alters_placeid_tuple), list(PTs_tuple)
+
+        # compute ODLR and CODLR
+        ego_Counter = Counter(ego_placeid)
+        cumulative_common_elements = Counter()
+        ODLR = []
+        CODLR = []
+        for alter_placeid in alters_placeid_list:
+            alter_Counter = Counter(alter_placeid)
+            common_elements = ego_Counter & alter_Counter
+            ODLR.append(len(common_elements) / length_ego_uni)
+            cumulative_common_elements += common_elements
+            CODLR.append(len(cumulative_common_elements) / length_ego_uni)
 
         # alters
         CCE_alters = util.cumulative_LZ_CE(W1_list=alters_placeid_list,
@@ -331,8 +346,8 @@ class Co_Locationship(object):
         if verbose:
             print(ego)
         # last return value is rank
-        return CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, \
-               CCE_ego_alters, Pi_ego_alters, [entropy] * N_alters, [Pi] * N_alters, list(range(1, N_alters + 1))
+        return CCE_alters, Pi_alters, CCE_ego_alter, Pi_ego_alter, CCE_ego_alters, Pi_ego_alters, \
+               [entropy] * N_alters, [Pi] * N_alters, list(range(1, N_alters + 1)), ODLR, CODLR
 
     def _get_placeid_PT(self, ego_time, alter):
         """
