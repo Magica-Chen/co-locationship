@@ -191,7 +191,9 @@ class ComparisonNetwork(object):
         :param increasing: bool, test for increasing trend or decreasing trend
         :return: dataframe, filled in stats tests results
         """
-        stats_test = util.spearman_kendall_test(self.data,
+        df = self.data
+        df[DATASET_COLUMN] = 'dataset'
+        stats_test = util.spearman_kendall_test(df,
                                                 item=target,
                                                 rank_in=RANK_COLUMN,
                                                 category_in=CATEGORY_COLUMN,
@@ -202,7 +204,7 @@ class ComparisonNetwork(object):
         return stats_test
 
     def stats_test_consistency(self, target, alpha=0.01,
-                               mode='talk', l=5.4, w=1.8):
+                               mode='talk', l=1.8, w=1.8):
         """
         Do two-side t test, including t-test and paired sample t-test.
         :param df: dataframe, it should include the column 'item'
@@ -213,7 +215,9 @@ class ComparisonNetwork(object):
         :param w: wide
         :return: matrix plot filled in test results
         """
-        stats_list, dataset = util.two_side_t_test(self.data,
+        df = self.data
+        df[DATASET_COLUMN] = 'dataset'
+        stats_list, dataset = util.two_side_t_test(df,
                                                    item=target,
                                                    alpha=alpha,
                                                    method='paired',
