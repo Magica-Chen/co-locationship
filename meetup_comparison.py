@@ -13,6 +13,9 @@ import util
 
 RANK_COLUMN = 'Rank'
 CATEGORY_COLUMN = 'category'
+DATASET_COLUMN = 'dataset'
+USERID_X_COLUMN = 'userid_x'
+USERID_Y_COLUMN = 'userid_y'
 
 
 class ComparisonNetwork(object):
@@ -38,7 +41,7 @@ class ComparisonNetwork(object):
             df_network_all = pd.concat(df_network_list)
             # get common users for all classes
             common_users = sorted(list(set(userlist_list[0]).intersection(*userlist_list)))
-            df_network_all = df_network_all[df_network_all['userid_x'].isin(common_users)]
+            df_network_all = df_network_all[df_network_all[USERID_X_COLUMN].isin(common_users)]
             self.userlist = common_users
             self.category = network_name
 
@@ -137,14 +140,16 @@ class ComparisonNetwork(object):
                 js_list = []
                 for i in range(n_cat):
                     cat1 = self.category[i]
-                    for j in range(i+1, n_cat):
+                    for j in range(i + 1, n_cat):
                         cat2 = self.category[j]
                         item_name = cat1 + ' vs ' + cat2
                         for user in self.userlist:
-                            alter_cat1 = self.data[(self.data[CATEGORY_COLUMN] == cat1) & (self.data['userid_x'] == user)][
-                                'userid_y'].tolist()
-                            alter_cat2 = self.data[(self.data[CATEGORY_COLUMN] == cat2) & (self.data['userid_x'] == user)][
-                                'userid_y'].tolist()
+                            alter_cat1 = \
+                                self.data[(self.data[CATEGORY_COLUMN] == cat1) & (self.data[USERID_X_COLUMN] == user)][
+                                    USERID_Y_COLUMN].tolist()
+                            alter_cat2 = \
+                                self.data[(self.data[CATEGORY_COLUMN] == cat2) & (self.data[USERID_X_COLUMN] == user)][
+                                    USERID_Y_COLUMN].tolist()
                             js = util.jaccard_similarity(alter_cat1, alter_cat2)
                             js_list.append([item_name, js])
 
@@ -161,8 +166,8 @@ class ComparisonNetwork(object):
                 js_list = []
                 for cat1 in self.category:
                     for cat2 in self.category:
-                        alter_cat1 = self.data[self.data[CATEGORY_COLUMN] == cat1]['userid_y'].tolist()
-                        alter_cat2 = self.data[self.data[CATEGORY_COLUMN] == cat2]['userid_y'].tolist()
+                        alter_cat1 = self.data[self.data[CATEGORY_COLUMN] == cat1][USERID_Y_COLUMN].tolist()
+                        alter_cat2 = self.data[self.data[CATEGORY_COLUMN] == cat2][USERID_Y_COLUMN].tolist()
                         js = util.jaccard_similarity(alter_cat1, alter_cat2)
                         js_list.append(js)
                 result = np.array(js_list).reshape(n_cat, n_cat)
@@ -177,3 +182,57 @@ class ComparisonNetwork(object):
             return fig
         else:
             return 'Must have two networks!'
+
+    def stats_test_monotonicity(self, target='CCP', alpha=0.05, increasing=True):
+        """
+        Spearman's and Kendall's rank test for monotonicity
+        :param target: string, it should be 'CCP', 'ODLR, or 'CODLR'
+        :param alpha: float, significant level
+        :param increasing: bool, test for increasing trend or decreasing trend
+        :return: dataframe, filled in stats tests results
+        """
+        stats_test = util.spearman_kendall_test(self.data,
+                                                item=target,
+                                                rank_in=RANK_COLUMN,
+                                                category_in=CATEGORY_COLUMN,
+                                                dataset_in=DATASET_COLUMN,
+                                                userid_in=USERID_X_COLUMN,
+                                                alpha=alpha,
+                                                increasing=increasing)
+        return stats_test
+
+    def stats_test_consistency(self, target, alpha=0.01,
+                               mode='talk', l=5.4, w=1.8):
+        """
+        Do two-side t test, including t-test and paired sample t-test.
+        :param df: dataframe, it should include the column 'item'
+        :param target: string, it should be 'CCP', 'ODLR, or 'CODLR'
+        :param alpha: significant level
+        :param mode: seaborn setting
+        :param l: length
+        :param w: wide
+        :return: matrix plot filled in test results
+        """
+        stats_list, dataset = util.two_side_t_test(self.data,
+                                                   item=target,
+                                                   alpha=alpha,
+                                                   method='paired',
+                                                   category_in=CATEGORY_COLUMN,
+                                                   dataset_in=DATASET_COLUMN,
+                                                   userid_in=USERID_X_COLUMN)
+        n_subplots = len(self.category)
+        sns.set_context(mode)
+        fig, axn = plt.subplots(1, n_subplots, figsize=(l, w), sharey=True)
+
+        for i, ax in enumerate(axn.flat):
+            sns.heatmap(stats_list[i], ax=ax,
+                        linewidths=.5, annot=True,
+                        fmt=".2%", cbar=False, cmap="YlGnBu"
+                        )
+            ax.xaxis.set_label_position('bottom')
+            ax.set_title(dataset[i], pad=15)
+            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+
+        fig.tight_layout(rect=[0, 0, .9, 1])
+
+        return fig
