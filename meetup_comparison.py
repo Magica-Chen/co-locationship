@@ -4,13 +4,15 @@
 # Class for co-locationship, meetup_strategy
 # (c) Zexun Chen, 2020-12-09
 # sxtpy2010@gmail.com
-import pandas as pd
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import util
-import matplotlib.ticker as ticker
+
+RANK_COLUMN = 'Rank'
+CATEGORY_COLUMN = 'category'
 
 
 class ComparisonNetwork(object):
@@ -29,7 +31,7 @@ class ComparisonNetwork(object):
             userlist_list = []
             for network, name in zip(network_class, network_name):
                 interim = network.network_details
-                interim['category'] = name
+                interim[CATEGORY_COLUMN] = name
                 userlist = network.final_userlist
                 df_network_list.append(interim)
                 userlist_list.append(userlist)
@@ -42,22 +44,37 @@ class ComparisonNetwork(object):
 
         else:
             df_network_all = network_class.network_details
-            df_network_all['category'] = network_name
+            df_network_all[CATEGORY_COLUMN] = network_name
             self.userlist = network_class.final_userlist
             self.category = [network_name]
 
-        df_network_all = df_network_all[df_network_all['Rank'] <= threshold]
+        df_network_all = df_network_all[df_network_all[RANK_COLUMN] <= threshold]
         df_network_all = df_network_all.assign(Pi_alters_ratio=df_network_all['Pi_alters'] / df_network_all['Pi'],
                                                Pi_ego_alters_ratio=df_network_all['Pi_ego_alters'] / df_network_all[
                                                    'Pi']
                                                )
         self.data = df_network_all
 
-    def print_info(self):
+    def __call__(self):
+        """
+        Self call function just shows how many shared users in the comparison
+        :return: None
+        """
         print("There are " + str(len(self.userlist)) + " common users.")
 
     def plot_errorbar(self, target='CCP',
                       mode='talk', style="whitegrid", l=10, w=6, ci=95):
+        """
+        Errorbar plot: Rank vs target
+        :param target: string, it should be 'CCP', 'ODLR, or 'CODLR'
+        :param mode: seaborn setting
+        :param style: seaborn setting
+        :param l: length
+        :param w: wide
+        :param ci: seaborn setting, confidence interval
+        :return: fig
+        """
+
         if target is 'ODLR':
             y_axis = 'ODLR'
             y_label = '$\eta_{ego}(alter)$'
@@ -71,24 +88,44 @@ class ComparisonNetwork(object):
         sns.set_context(mode)
         sns.set_style(style)
         fig, ax = plt.subplots(figsize=(l, w))
-        sns.pointplot(x="Rank", y=y_axis, data=self.data,
-                      hue='category', ci=ci, join=False, ax=ax)
+        sns.pointplot(x=RANK_COLUMN, y=y_axis, data=self.data,
+                      hue=CATEGORY_COLUMN, ci=ci, join=False, ax=ax)
         ax.set_ylabel(y_label)
         ax.set_xlabel("Included Number of Alters")
         ax.legend_.set_title(None)
+        return fig
 
     def plot_CE(self, mode='talk', style="whitegrid", l=10, w=6, n_bins=50):
-        category = self.data['category'].unique().tolist()
+        """
+        Cross entropy histogram plot
+        :param mode: seaborn setting
+        :param style: seaborn setting
+        :param l: length
+        :param w: wide
+        :param n_bins: number of bins for histogram plot
+        :return:
+        """
+        category = self.data[CATEGORY_COLUMN].unique().tolist()
         sns.set_context(mode)
         sns.set_style(style)
         fig, ax = plt.subplots(figsize=(l, w))
         for cat in category:
-            sns.distplot(self.data[self.data['category'] == cat]['CE_alter'], label=cat, bins=n_bins)
+            sns.distplot(self.data[self.data[CATEGORY_COLUMN] == cat]['CE_alter'], label=cat, bins=n_bins)
         ax.set(xlabel='Cross-entropy (bits)', ylabel='Density')
         ax.legend(loc='upper left')
+        return fig
 
     def plot_similarity(self, local=False,
                         mode='talk', style="whitegrid", l=10, w=6):
+        """
+        Plot matrix of Jaccard similarity between the comparison
+        :param local: bool, local Jaccard similarity or Global similarity
+        :param mode: seaborn setting
+        :param style: seaborn setting
+        :param l: length
+        :param w: wide
+        :return: None
+        """
         n_cat = len(self.category)
         if n_cat > 1:
             sns.set_context(mode)
@@ -104,11 +141,11 @@ class ComparisonNetwork(object):
                         cat2 = self.category[j]
                         item_name = cat1 + ' vs ' + cat2
                         for user in self.userlist:
-                            alter_cat1 = self.data[(self.data['category'] == cat1) & (self.data['userid_x'] == user)][
+                            alter_cat1 = self.data[(self.data[CATEGORY_COLUMN] == cat1) & (self.data['userid_x'] == user)][
                                 'userid_y'].tolist()
-                            alter_cat2 = self.data[(self.data['category'] == cat2) & (self.data['userid_x'] == user)][
+                            alter_cat2 = self.data[(self.data[CATEGORY_COLUMN] == cat2) & (self.data['userid_x'] == user)][
                                 'userid_y'].tolist()
-                            js = util.metric.jaccard_similarity(alter_cat1, alter_cat2)
+                            js = util.jaccard_similarity(alter_cat1, alter_cat2)
                             js_list.append([item_name, js])
 
                 result = pd.DataFrame(js_list, columns=['item_name', 'js_value'])
@@ -124,9 +161,9 @@ class ComparisonNetwork(object):
                 js_list = []
                 for cat1 in self.category:
                     for cat2 in self.category:
-                        alter_cat1 = self.data[self.data['category'] == cat1]['userid_y'].tolist()
-                        alter_cat2 = self.data[self.data['category'] == cat2]['userid_y'].tolist()
-                        js = util.metric.jaccard_similarity(alter_cat1, alter_cat2)
+                        alter_cat1 = self.data[self.data[CATEGORY_COLUMN] == cat1]['userid_y'].tolist()
+                        alter_cat2 = self.data[self.data[CATEGORY_COLUMN] == cat2]['userid_y'].tolist()
+                        js = util.jaccard_similarity(alter_cat1, alter_cat2)
                         js_list.append(js)
                 result = np.array(js_list).reshape(n_cat, n_cat)
                 result = pd.DataFrame(result, columns=self.category, index=self.category)
@@ -137,5 +174,6 @@ class ComparisonNetwork(object):
                 ax.xaxis.set_label_position('bottom')
                 ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
 
+            return fig
         else:
             return 'Must have two networks!'
