@@ -240,16 +240,14 @@ class ComparisonNetwork(object):
                                                    userid_in=USERID_X_COLUMN)
         n_subplots = len(dataset)
         sns.set_context(mode)
-        fig, axn = plt.subplots(1, n_subplots, figsize=(l, w), sharey=True)
 
-        for i, ax in enumerate(axn.flat):
-            sns.heatmap(stats_list[i], ax=ax,
-                        linewidths=.5, annot=True,
-                        fmt=".2%", cbar=False, cmap="YlGnBu"
-                        )
-            ax.xaxis.set_label_position('bottom')
-            ax.set_title(dataset[i], pad=15)
-            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        fig, ax = plt.subplots(figsize=(l, w))
+        sns.heatmap(stats_list[0], ax=ax,
+                    linewidths=.5, annot=True,
+                    fmt=".2%", cbar=False, cmap="YlGnBu"
+                    )
+        ax.xaxis.set_label_position('bottom')
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
 
         fig.tight_layout(rect=[0, 0, .9, 1])
 
