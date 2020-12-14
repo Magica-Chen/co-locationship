@@ -65,11 +65,11 @@ class ComparisonNetwork(object):
         """
         print("There are " + str(len(self.userlist)) + " common users.")
 
-    def plot_errorbar(self, target='CCP',
+    def plot_errorbar(self, target='RCCP',
                       mode='talk', style="whitegrid", l=10, w=6, ci=95):
         """
         Errorbar plot: Rank vs target
-        :param target: string, it should be 'CCP', 'ODLR, or 'CODLR'
+        :param target: string, it should be 'RCCP', 'ODLR, or 'CODLR'
         :param mode: seaborn setting
         :param style: seaborn setting
         :param l: length
@@ -183,18 +183,25 @@ class ComparisonNetwork(object):
         else:
             return 'Must have two networks!'
 
-    def stats_test_monotonicity(self, target='CCP', alpha=0.05, increasing=True):
+    def stats_test_monotonicity(self, target='RCCP', alpha=0.05, increasing=True):
         """
         Spearman's and Kendall's rank test for monotonicity
-        :param target: string, it should be 'CCP', 'ODLR, or 'CODLR'
+        :param target: string, it should be 'RCCP', 'ODLR, or 'CODLR'
         :param alpha: float, significant level
         :param increasing: bool, test for increasing trend or decreasing trend
         :return: dataframe, filled in stats tests results
         """
         df = self.data
         df[DATASET_COLUMN] = 'dataset'
+        if target is 'ODLR':
+            item = 'ODLR'
+        elif target is 'CODLR':
+            item = 'CODLR'
+        else:
+            item = 'Pi_alters_ratio'
+
         stats_test = util.spearman_kendall_test(df,
-                                                item=target,
+                                                item=item,
                                                 rank_in=RANK_COLUMN,
                                                 category_in=CATEGORY_COLUMN,
                                                 dataset_in=DATASET_COLUMN,
@@ -208,7 +215,7 @@ class ComparisonNetwork(object):
         """
         Do two-side t test, including t-test and paired sample t-test.
         :param df: dataframe, it should include the column 'item'
-        :param target: string, it should be 'CCP', 'ODLR, or 'CODLR'
+        :param target: string, it should be 'RCCP', 'ODLR, or 'CODLR'
         :param alpha: significant level
         :param mode: seaborn setting
         :param l: length
@@ -217,8 +224,15 @@ class ComparisonNetwork(object):
         """
         df = self.data
         df[DATASET_COLUMN] = 'dataset'
+        if target is 'ODLR':
+            item = 'ODLR'
+        elif target is 'CODLR':
+            item = 'CODLR'
+        else:
+            item = 'Pi_alters_ratio'
+
         stats_list, dataset = util.two_side_t_test(df,
-                                                   item=target,
+                                                   item=item,
                                                    alpha=alpha,
                                                    method='paired',
                                                    category_in=CATEGORY_COLUMN,
