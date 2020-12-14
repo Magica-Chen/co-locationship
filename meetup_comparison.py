@@ -178,6 +178,7 @@ class ComparisonNetwork(object):
                 # ax.xaxis.tick_top() # x axis on top
                 ax.xaxis.set_label_position('bottom')
                 ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+                ax.set_yticklabels(ax.get_yticklabels(), rotation=0, ha='right')
 
             return fig
         else:
