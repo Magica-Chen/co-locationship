@@ -211,7 +211,7 @@ class ComparisonNetwork(object):
         return stats_test
 
     def stats_test_consistency(self, target, alpha=0.01,
-                               mode='talk', l=1.8, w=1.8):
+                               mode='talk', l=5.5, w=4.5):
         """
         Do two-side t test, including t-test and paired sample t-test.
         :param df: dataframe, it should include the column 'item'
@@ -248,6 +248,7 @@ class ComparisonNetwork(object):
                     )
         ax.xaxis.set_label_position('bottom')
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        ax.set_yticklabels(ax.get_yticklabels(), rotation=0, ha='right')
 
         fig.tight_layout(rect=[0, 0, .9, 1])
 
