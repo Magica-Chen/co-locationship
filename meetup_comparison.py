@@ -238,7 +238,7 @@ class ComparisonNetwork(object):
                                                    category_in=CATEGORY_COLUMN,
                                                    dataset_in=DATASET_COLUMN,
                                                    userid_in=USERID_X_COLUMN)
-        n_subplots = len(self.category)
+        n_subplots = len(dataset)
         sns.set_context(mode)
         fig, axn = plt.subplots(1, n_subplots, figsize=(l, w), sharey=True)
 
