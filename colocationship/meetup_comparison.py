@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import util
+from . import util
 
 RANK_COLUMN = 'Rank'
 CATEGORY_COLUMN = 'category'

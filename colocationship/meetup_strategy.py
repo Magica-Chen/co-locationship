@@ -6,7 +6,7 @@
 # sxtpy2010@gmail.com
 
 import pandas as pd
-import util
+from . import util
 from collections import Counter
 from datetime import timedelta
 
@@ -19,16 +19,17 @@ class Co_Locationship(object):
     Create a class to investigate co-locationship
     """
 
-    def __init__(self, path, mins_records=150, **kwargs):
+    def __init__(self, df_checkin, mins_records=150, **kwargs):
         """
-        :param path: path of source file
+        :param df_checkin: raw check-in daatframe
         :param mins_records: the required min number of records for each user
         :param kwargs: resolution and other kargs
         """
         # rdata means raw dataset and pdata means processed dataset
         # since we only needs userid, placieid and datetime in our computation,
         # so these attributes are required.
-        self.rdata = pd.read_csv(path)
+        # self.rdata = pd.read_csv(df_checkin)
+        self.rdata = df_checkin
         self.pdata = util.pre_processing(df_raw=self.rdata,
                                          min_records=mins_records,
                                          **kwargs)
@@ -364,10 +365,10 @@ class Social_Relationship(Co_Locationship):
     Create a Social relationship network
     """
 
-    def __init__(self, path, path_network, mins_records=150, **kwargs):
-        super(Social_Relationship, self).__init__(path, mins_records, **kwargs)
+    def __init__(self, df_checkin, df_friend, mins_records=150, **kwargs):
+        super(Social_Relationship, self).__init__(df_checkin, mins_records, **kwargs)
 
-        df_friend = pd.read_csv(path_network)
+        # df_friend = pd.read_csv(path_network)
         self.network = df_friend[
             (df_friend[df_friend.columns[0]].isin(self.userlist)) & (
                 df_friend[df_friend.columns[1]].isin(self.userlist))]

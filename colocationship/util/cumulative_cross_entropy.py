@@ -6,8 +6,8 @@
 # sxtpy2010@gmail.com
 
 import numpy as np
-from util.cross_entropy import LZ_cross_entropy
-from util.entropy import LZ_entropy
+from .cross_entropy import LZ_cross_entropy
+from .entropy import LZ_entropy
 
 
 def cumulative_LZ_CE(W1_list, W2, PTs_list, individual=False, ego_include=False,
