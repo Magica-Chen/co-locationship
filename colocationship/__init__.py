@@ -6,3 +6,5 @@
 # sxtpy2010@gmail.com
 
 from . import util
+from .meetup_strategy import *
+from .meetup_comparison import *
