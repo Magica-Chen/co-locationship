@@ -6,6 +6,12 @@ The code was tested on Python 3.6.
 
 ## Install
 
+The dependencies package are shown in `requirements.txt`, also, you can run 
+
+```
+pip install -r requirements.txt
+```
+
 After installing all dependencies clone the repository and do (inside the top directory):
 
 ```
