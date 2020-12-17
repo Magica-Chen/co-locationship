@@ -26,7 +26,13 @@ pip install --editable .
 
 This makes changes to the source files in the cloned directory immediately available to everything that imports the package.
 
-Anywhere on the system you can then import the package:
+Or you can use `pip` directly (currently this package only publishes in `Testpypi`), 
+
+```
+pip install -i https://test.pypi.org/simple/ colocationship==0.0.1
+```
+
+After installation, anywhere on the system you can then import the package:
 
 ```python
 import colocationship as cl
