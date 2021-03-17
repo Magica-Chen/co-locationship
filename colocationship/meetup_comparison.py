@@ -65,11 +65,11 @@ class ComparisonNetwork(object):
         """
         print("There are " + str(len(self.userlist)) + " common users.")
 
-    def plot_errorbar(self, target='RCCP',
+    def plot_errorbar(self, target='alters',
                       mode='talk', style="whitegrid", l=10, w=6, ci=95):
         """
         Errorbar plot: Rank vs target
-        :param target: string, it should be 'RCCP', 'ODLR, or 'CODLR'
+        :param target: string, it should be 'alters', 'ego+alters' ,'ODLR, or 'CODLR'
         :param mode: seaborn setting
         :param style: seaborn setting
         :param l: length
@@ -84,9 +84,12 @@ class ComparisonNetwork(object):
         elif target is 'CODLR':
             y_axis = 'CODLR'
             y_label = '$\eta_{ego}(alters)$'
-        else:
+        elif target is 'alters':
             y_axis = 'Pi_alters_ratio'
             y_label = '$\Pi_{alters}/ \Pi_{ego}$'
+        else:
+            y_axis = 'Pi_ego_alters_ratio'
+            y_label = '$\Pi_{ego+alters}/ \Pi_{ego}$'
 
         sns.set_context(mode)
         sns.set_style(style)
@@ -184,10 +187,10 @@ class ComparisonNetwork(object):
         else:
             return 'Must have two networks!'
 
-    def stats_test_monotonicity(self, target='RCCP', alpha=0.05, increasing=True):
+    def stats_test_monotonicity(self, target='alters', alpha=0.05, increasing=True):
         """
         Spearman's and Kendall's rank test for monotonicity
-        :param target: string, it should be 'RCCP', 'ODLR, or 'CODLR'
+        :param target: string, it should be 'alters', 'ego+alters' ,'ODLR, or 'CODLR'
         :param alpha: float, significant level
         :param increasing: bool, test for increasing trend or decreasing trend
         :return: dataframe, filled in stats tests results
@@ -198,8 +201,10 @@ class ComparisonNetwork(object):
             item = 'ODLR'
         elif target is 'CODLR':
             item = 'CODLR'
-        else:
+        elif target is 'alters':
             item = 'Pi_alters_ratio'
+        else:
+            item = 'Pi_ego_alters_ratio'
 
         stats_test = util.spearman_kendall_test(df,
                                                 item=item,
@@ -216,7 +221,7 @@ class ComparisonNetwork(object):
         """
         Do two-side t test, including t-test and paired sample t-test.
         :param df: dataframe, it should include the column 'item'
-        :param target: string, it should be 'RCCP', 'ODLR, or 'CODLR'
+        :param target: string, it should be 'alters', 'ego+alters', 'ODLR, or 'CODLR'
         :param alpha: significant level
         :param mode: seaborn setting
         :param l: length
@@ -229,8 +234,10 @@ class ComparisonNetwork(object):
             item = 'ODLR'
         elif target is 'CODLR':
             item = 'CODLR'
-        else:
+        elif target is 'alters':
             item = 'Pi_alters_ratio'
+        else:
+            item = 'Pi_ego_alters_ratio'
 
         stats_list, dataset = util.two_side_t_test(df,
                                                    item=item,
