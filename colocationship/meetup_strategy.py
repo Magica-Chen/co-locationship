@@ -279,7 +279,7 @@ class Co_Locationship(object):
             name = kwargs['name'] + '_CLN_network_details_' + str(self.freq) + '.csv'
         else:
             name = 'CLN_network_details_' + str(self.freq) + '.csv'
-        self.network_details.to_csv(name)
+        self.network_details.to_csv(name, index=False)
 
     def _get_ego_info(self, ego, verbose=False):
         """
@@ -480,4 +480,4 @@ class Social_Relationship(Co_Locationship):
             name = kwargs['name'] + '_SRN_network_details_' + str(self.freq) + '.csv'
         else:
             name = 'SRN_network_details_' + str(self.freq) + '.csv'
-        self.network_details.to_csv(name)
+        self.network_details.to_csv(name, index=False)
