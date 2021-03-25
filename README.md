@@ -1,6 +1,6 @@
 # co-locationship
 
-"Co-locationship" as an Alternative to Social Ties in Predictability of Human Mobility.
+Leveraging information transfer in social and co-location networks to improve predictability in human mobility
 
 The code was tested on Python 3.6.
 
@@ -54,6 +54,9 @@ co_locationship = cl.Co_Locationship(df_checkin,
 # generate placeid sequence
 co_locationship()
 
+# Build the co-locationship network in the first time
+co_locationship.build_network(freq='H')
+
 # calculate basic information of co-locationship network
 co_locationship.calculate_info()
 
@@ -73,7 +76,7 @@ co_locationship.network_control(quality=True,
 co_locationship.calculate_network(verbose=False, filesave=True)
 ```
 
-The code in `Line 6`, `Line 9`, `Line 24` may takes a long time, so it is better to run them separately, and save these interim results.
+The code in `Line 6`, `Line 9`, `Line 12` `Line 27` may takes a long time, so it is better to run them separately, and save these interim results.
 
 ### Social relationship network
 
