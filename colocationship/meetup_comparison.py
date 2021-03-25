@@ -23,11 +23,12 @@ class ComparisonNetwork(object):
     Create a class to compare some co-locationship network or social relationship network
     """
 
-    def __init__(self, network_class, network_name, threshold=10):
+    def __init__(self, network_class, network_name, threshold=10, **kwargs):
         """
         :param network_class: class, or list of classes
         :param network_name: string, or list of strings for the corresponding classes
         :param threshold: threshold for the maximum x-axis to show
+        :param **kwargs: 'common_users' if the common egos are specified.
         """
         if type(network_class) is list:
             df_network_list = []
@@ -57,6 +58,11 @@ class ComparisonNetwork(object):
                                                    'Pi']
                                                )
         self.data = df_network_all
+
+        if 'common_users' in kwargs:
+            common_users = sorted(list(set(kwargs['common_users']) & set(self.userlist)))
+            self.data = self.data[self.data[USERID_X_COLUMN].isin(common_users)]
+            self.userlist = common_users
 
     def __call__(self):
         """
