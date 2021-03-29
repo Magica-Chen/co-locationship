@@ -107,7 +107,7 @@ class ComparisonNetwork(object):
         ax.set_xlabel("Included Number of Alters")
         ax.legend_.set_title(None)
 
-        if self.statistics is None:
+        if len(self.statistics) == 0:
             self.statistics = util.utils.ci_transfer(df=self.data,
                                                      on=['Rank', 'category'],
                                                      target=target)
