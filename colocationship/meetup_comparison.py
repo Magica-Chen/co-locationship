@@ -110,13 +110,13 @@ class ComparisonNetwork(object):
         if len(self.statistics) == 0:
             self.statistics = util.utils.ci_transfer(df=self.data,
                                                      on=['Rank', 'category'],
-                                                     target=target)
+                                                     target=y_axis)
         else:
-            mean_col = 'mean_' + target
+            mean_col = 'mean_' + y_axis
             if mean_col not in self.statistics.columns:
                 statistics = util.utils.ci_transfer(df=self.data,
                                                     on=['Rank', 'category'],
-                                                    target=target)
+                                                    target=y_axis)
                 self.statistics = self.statistics.merge(statistics,
                                                         how='left',
                                                         on=['Rank', 'category'])
