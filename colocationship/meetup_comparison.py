@@ -58,6 +58,7 @@ class ComparisonNetwork(object):
                                                    'Pi']
                                                )
         self.data = df_network_all
+        self.statistics = []
 
         if 'common_users' in kwargs:
             common_users = sorted(list(set(kwargs['common_users']) & set(self.userlist)))
@@ -105,11 +106,26 @@ class ComparisonNetwork(object):
         ax.set_ylabel(y_label)
         ax.set_xlabel("Included Number of Alters")
         ax.legend_.set_title(None)
+
+        if self.statistics is None:
+            self.statistics = util.utils.ci_transfer(df=self.data,
+                                                     on=['Rank', 'category'],
+                                                     target=target)
+        else:
+            mean_col = 'mean_' + target
+            if mean_col not in self.statistics.columns:
+                statistics = util.utils.ci_transfer(df=self.data,
+                                                    on=['Rank', 'category'],
+                                                    target=target)
+                self.statistics = self.statistics.merge(statistics,
+                                                        how='left',
+                                                        on=['Rank', 'category'])
+
         return fig
 
-    def plot_CE(self, mode='talk', style="whitegrid", l=10, w=6, n_bins=50):
+    def plot_histogram(self, mode='talk', style="whitegrid", l=15, w=6, n_bins=50):
         """
-        Cross entropy histogram plot
+        Cross entropy and cross predictability histogram plot
         :param mode: seaborn setting
         :param style: seaborn setting
         :param l: length
@@ -120,11 +136,23 @@ class ComparisonNetwork(object):
         category = self.data[CATEGORY_COLUMN].unique().tolist()
         sns.set_context(mode)
         sns.set_style(style)
-        fig, ax = plt.subplots(figsize=(l, w))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(l, w))
         for cat in category:
-            sns.distplot(self.data[self.data[CATEGORY_COLUMN] == cat]['CE_alter'], label=cat, bins=n_bins)
-        ax.set(xlabel='Cross-entropy (bits)', ylabel='Density')
-        ax.legend(loc='upper left')
+            sns.distplot(self.data[self.data[CATEGORY_COLUMN] == cat]['CE_alter'],
+                         label=cat,
+                         bins=n_bins,
+                         ax=ax1)
+        ax1.set(xlabel='Cross-entropy (bits)', ylabel='Density')
+        ax1.legend(loc='upper left')
+
+        for cat in category:
+            sns.distplot(self.data[self.data[CATEGORY_COLUMN] == cat]['Pi_alter'],
+                         label=cat,
+                         bins=n_bins,
+                         ax=ax1)
+        ax1.set(xlabel='Predictability', ylabel='Density')
+        ax1.legend(loc='upper left')
+
         return fig
 
     def plot_similarity(self, local=False,
