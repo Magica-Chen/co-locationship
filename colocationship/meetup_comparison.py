@@ -149,9 +149,9 @@ class ComparisonNetwork(object):
             sns.distplot(self.data[self.data[CATEGORY_COLUMN] == cat]['Pi_alter'],
                          label=cat,
                          bins=n_bins,
-                         ax=ax1)
-        ax1.set(xlabel='Predictability', ylabel='Density')
-        ax1.legend(loc='upper left')
+                         ax=ax2)
+        ax2.set(xlabel='Predictability', ylabel='Density')
+        ax2.legend(loc='upper left')
 
         return fig
 
