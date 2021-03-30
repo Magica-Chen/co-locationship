@@ -85,25 +85,25 @@ class ComparisonNetwork(object):
         :return: fig
         """
 
-        if target is 'ODLR':
+        if target == 'ODLR':
             y_axis = 'ODLR'
             y_label = '$\eta_{ego}(alter)$'
-        elif target is 'CODLR':
+        elif target == 'CODLR':
             y_axis = 'CODLR'
             y_label = '$\eta_{ego}(alters)$'
-        elif target is 'RCCP alters':
+        elif target == 'RCCP alters':
             y_axis = 'Pi_alters_ratio'
             y_label = '$\Pi_{alters}/ \Pi_{ego}$'
-        elif target is 'RCCP ego+alters':
+        elif target == 'RCCP ego+alters':
             y_axis = 'Pi_ego_alters_ratio'
             y_label = '$\Pi_{ego+alters}/ \Pi_{ego}$'
-        elif target is "CCP alters":
+        elif target == 'CCP alters':
             y_axis = 'Pi_alters'
             y_label = '$\Pi_{alters}$'
-        elif target is "CCP ego+alters":
+        elif target == "CCP ego+alters":
             y_axis = 'Pi_ego_alters'
             y_label = '$\Pi_{ego+alters}$'
-        elif target is "CCE alters":
+        elif target == "CCE alters":
             y_axis = 'CCE_alters'
             y_label = '$\hat{S}_{ego|alters}$'
         else:
