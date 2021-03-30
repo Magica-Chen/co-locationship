@@ -91,12 +91,23 @@ class ComparisonNetwork(object):
         elif target is 'CODLR':
             y_axis = 'CODLR'
             y_label = '$\eta_{ego}(alters)$'
-        elif target is 'alters':
+        elif target is 'RCCP alters':
             y_axis = 'Pi_alters_ratio'
             y_label = '$\Pi_{alters}/ \Pi_{ego}$'
-        else:
+        elif target is 'RCCP ego+alters':
             y_axis = 'Pi_ego_alters_ratio'
             y_label = '$\Pi_{ego+alters}/ \Pi_{ego}$'
+        elif target is "CCP alters":
+            y_axis = 'Pi_alters'
+            y_label = '$\Pi_{alters}$'
+        elif target is "CCP ego+alters":
+            y_axis = 'Pi_ego_alters'
+            y_label = '$\Pi_{ego+alters}$'
+        elif target is "CCE alters":
+            y_axis = 'CCE_alters'
+            y_label = '$\hat{S}_{ego|alters}$'
+        else:
+            raise ValueError("Please type correct target!")
 
         sns.set_context(mode)
         sns.set_style(style)
