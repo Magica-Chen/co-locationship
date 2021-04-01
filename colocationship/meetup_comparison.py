@@ -106,6 +106,9 @@ class ComparisonNetwork(object):
         elif target == "CCE alters":
             y_axis = 'CCE_alters'
             y_label = '$\hat{S}_{ego|alters}$'
+        elif target == "CCE ego+alters":
+            y_axis = 'CCE_ego_alters'
+            y_label = '$\hat{S}_{ego|ego+alters}$'
         else:
             raise ValueError("Please type correct target!")
 
