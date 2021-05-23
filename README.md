@@ -1,3 +1,6 @@
+![GitHub](https://img.shields.io/github/license/Magica-Chen/co-locationship)
+[![DOI](https://zenodo.org/badge/309197285.svg)](https://zenodo.org/badge/latestdoi/309197285)
+
 # co-locationship
 
 Leveraging information transfer in social and co-location networks to improve predictability in human mobility
