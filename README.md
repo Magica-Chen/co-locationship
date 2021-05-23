@@ -2,6 +2,7 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Magica-Chen/co-locationship)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Magica-Chen/co-locationship)
 [![DOI](https://zenodo.org/badge/309197285.svg)](https://zenodo.org/badge/latestdoi/309197285)
+![GitHub Repo stars](https://img.shields.io/github/stars/Magica-Chen/gptp_multi_output?style=social)
 ![Twitter](https://img.shields.io/twitter/follow/MagicaChen?style=social)
 
 # co-locationship
