@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="colocationship",
-    version="0.0.1",
+    version="0.0.3",
     author="Zexun Chen",
     author_email="sxtpy2010@gmail.com",
     description="A light package for build and analyse co-locationship",

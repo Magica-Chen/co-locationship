@@ -4,7 +4,19 @@ Leveraging information transfer in social and co-location networks to improve pr
 
 The code was tested on Python 3.6.
 
-## Install
+## Install (via pypi version)
+
+```
+pip install colocationship
+```
+
+## Install (via GitHub)
+
+```
+git clone https://github.com/Magica-Chen/co-locationship.git
+
+cd co-locationship
+```
 
 The dependencies package are shown in `requirements.txt`, also, you can run 
 
