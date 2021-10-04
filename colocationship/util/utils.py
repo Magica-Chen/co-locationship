@@ -45,7 +45,7 @@ def ci_transfer(df, on, target):
     f = df.groupby(on).count().reset_index()[on]
 
     f[lower_col], f[upper_col] = zip(*df.groupby(on)[target].apply(lambda x:
-                                                                   sns.utils.ci(sns.algorithms.bootstrap(x),
+                                                                   sns.utils.ci(sns.algorithms.bootstrap(x.dropna()),
                                                                                 which=95)))
     f[mean_col] = df.groupby(on)[target].mean().reset_index()[target]
     return f
