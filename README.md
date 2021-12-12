@@ -62,9 +62,9 @@ The example please refers to `example/example_weeplaces.ipynb`.
 
 ## Citation
 
-@article{chen2021contrasting,
-  title={Contrasting social and non-social sources of predictability in human mobility},
-  author={Chen, Zexun and Kelty, Sean and Welles, Brooke Foucault and Bagrow, James P and Menezes, Ronaldo and Ghoshal, Gourab},
-  journal={arXiv preprint arXiv:2104.13282},
-  year={2021}
+@article{chen2021contrasting, \\
+  title={Contrasting social and non-social sources of predictability in human mobility},\\
+  author={Chen, Zexun and Kelty, Sean and Welles, Brooke Foucault and Bagrow, James P and Menezes, Ronaldo and Ghoshal, Gourab},\\
+  journal={arXiv preprint arXiv:2104.13282},\\
+  year={2021}\\
 }
