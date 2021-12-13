@@ -98,7 +98,7 @@ class Fast_network(object):
         :return: CE, CP, CE+ego, CP+ego, CCE, CCP, CCE+ego, CCP+egp, Rank, ODLR, CODLR
         """
         ego_time, length_ego_uni, length_ego, ego_placeid = self._extract_info(ego)
-        alters = self.network_details[self.network_details['userid_x'] == ego]['userid_y'].tolist()
+        alters = self.network[self.network['userid_x'] == ego]['userid_y'].tolist()
         alters_placeid_tuple, PTs_tuple = zip(*[self._get_placeid_PT(ego_time, alter) for alter in alters])
         alters_placeid_list, PTs_list = list(alters_placeid_tuple), list(PTs_tuple)
 
