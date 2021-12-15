@@ -72,7 +72,7 @@ class ComparisonNetwork(object):
         """
         print("There are " + str(len(self.userlist)) + " common users.")
 
-    def plot_errorbar(self, target='alters',
+    def plot_errorbar(self, target='CCP alters',
                       mode='talk', style="whitegrid", l=10, w=6, ci=95):
         """
         Errorbar plot: Rank vs target
@@ -123,17 +123,17 @@ class ComparisonNetwork(object):
 
         if len(self.statistics) == 0:
             self.statistics = util.utils.ci_transfer(df=self.data,
-                                                     on=['Rank', 'category'],
+                                                     on=[RANK_COLUMN, CATEGORY_COLUMN],
                                                      target=y_axis)
         else:
             mean_col = 'mean_' + y_axis
             if mean_col not in self.statistics.columns:
                 statistics = util.utils.ci_transfer(df=self.data,
-                                                    on=['Rank', 'category'],
+                                                    on=[RANK_COLUMN, CATEGORY_COLUMN],
                                                     target=y_axis)
                 self.statistics = self.statistics.merge(statistics,
                                                         how='left',
-                                                        on=['Rank', 'category'])
+                                                        on=[RANK_COLUMN, CATEGORY_COLUMN])
 
         return fig
 
