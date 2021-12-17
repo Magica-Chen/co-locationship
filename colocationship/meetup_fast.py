@@ -171,8 +171,11 @@ class Fast_network(object):
         if self.knockoff:
             n = len(alter_placeid)
             m = int(n * self.knockoff) + 1
-            alter_placeid = alter_placeid[m:]
-            alter_time = alter_time[m:]
+            # generate a random indices
+            indices = rd.sample(range(n), k=n-m)
+            # based on indices, choose the corresponding placeid and time
+            alter_placeid = [alter_placeid[i] for i in indices]
+            alter_time = [alter_time[i] for i in indices]
 
         total_time = sorted(ego_time + alter_time)
         PTs = [(total_time.index(x) - ego_time.index(x)) for x in ego_time]
