@@ -20,15 +20,18 @@ class Fast_network(object):
         and you would like to compute the statistics of network
     """
 
-    def __init__(self, network, placeidT, traj_shuffle=False):
+    def __init__(self, network, placeidT, traj_shuffle=False, knockoff=False):
         """
         :param network: the network is given
         :param placeidT: time-ordered placeid sequence of all users
+        :param traj_shuffle: whether we need to shuffle the trajectories
+        :param knockoff: whether we need to knock off the percentage of the whole trajectories
         """
         self.network = network
         self.placeidT = placeidT
         self.egolist = sorted(list(set(network['userid_x'].tolist())))
         self.shuffle = traj_shuffle
+        self.knockoff = knockoff
         self.network_details = None
 
     def _extract_info(self, user):
@@ -169,5 +172,10 @@ class Fast_network(object):
 
         if self.shuffle:
             rd.shuffle(alter_placeid)
+
+        if self.knockoff:
+            n = len(alter_placeid)
+            m = int(n * self.knockoff) + 1
+            alter_placeid = alter_placeid[m:]
 
         return alter_placeid, PTs
