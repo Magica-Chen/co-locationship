@@ -167,15 +167,17 @@ class Fast_network(object):
         :return: alter placeid sequence and PTs of alter based on ego
         """
         alter_time, _, _, alter_placeid = self._extract_info(alter)
-        total_time = sorted(ego_time + alter_time)
-        PTs = [(total_time.index(x) - ego_time.index(x)) for x in ego_time]
-
-        if self.shuffle:
-            rd.shuffle(alter_placeid)
 
         if self.knockoff:
             n = len(alter_placeid)
             m = int(n * self.knockoff) + 1
             alter_placeid = alter_placeid[m:]
+            alter_time = alter_time[m:]
+
+        total_time = sorted(ego_time + alter_time)
+        PTs = [(total_time.index(x) - ego_time.index(x)) for x in ego_time]
+
+        if self.shuffle:
+            rd.shuffle(alter_placeid)
 
         return alter_placeid, PTs
