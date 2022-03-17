@@ -5,10 +5,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="colocationship",
-    version="0.0.3",
+    version="2.0",
     author="Zexun Chen",
     author_email="sxtpy2010@gmail.com",
-    description="A light package for build and analyse co-locationship",
+    description="A light package for build and analyse co-locationship for paper: Contrasting social and non-social sources of predictability in human mobility",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Magica-Chen/co-locationship",
