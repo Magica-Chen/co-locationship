@@ -62,13 +62,13 @@ The example please refers to `example/example_weeplaces.ipynb`.
 
 ## Citation
 
-**Plain**\
+`**Plain**`\
 Chen, Z., Kelty, S., Evsukoff, A.G. et al. Contrasting social and non-social sources of predictability in human mobility. Nat Commun 13, 1922 (2022).
 
-**bibtex**\
+`**bibtex**`\
 @article{chen2022constrasting,\
-  title={Contrasting social and non-social sources of predictability in human mobility},\
-  author={Chen, Zexun and Kelty, Sean and Evsukoff, Alexandre G. and Welles, Brooke Foucault and Bagrow, James P and Menezes, Ronaldo and Ghoshal, Gourab},\
+&nbsp; title={Contrasting social and non-social sources of predictability in human mobility},\
+&nbsp; author={Chen, Zexun and Kelty, Sean and Evsukoff, Alexandre G. and Welles, Brooke Foucault and Bagrow, James P and Menezes, Ronaldo and Ghoshal, Gourab},\
   journal={Nature communications},\
   volume={13},\
   number={1},\
