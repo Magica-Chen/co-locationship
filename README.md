@@ -1,4 +1,5 @@
 ![GitHub](https://img.shields.io/github/license/Magica-Chen/co-locationship)
+[![Citation Badge](https://api.juleskreuer.eu/citation-badge.php?doi=10.1038/s41467-022-29592-y)](https://juleskreuer.eu/projekte/citation-badge/)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Magica-Chen/co-locationship)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Magica-Chen/co-locationship)
 [![DOI](https://zenodo.org/badge/309197285.svg)](https://zenodo.org/badge/latestdoi/309197285)
